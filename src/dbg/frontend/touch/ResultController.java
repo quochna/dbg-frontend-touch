@@ -11,7 +11,6 @@ import dbg.entity.ChargeInfo;
 import dbg.entity.MiniAppServerEntity;
 import dbg.enums.PMCIDEnum;
 import dbg.enums.TransStatusEnum;
-import dbg.frontend.touch.entity.SSO3Account;
 import dbg.request.SubmitTransReq;
 import dbg.response.SubmitTransResp;
 import dbg.response.SubmitValidateTransResp;
@@ -197,48 +196,48 @@ public class ResultController extends DbgFrontendCore
             {
                 cardInfo.cardPassword = cardInfo.cardPassword.toUpperCase();
             }
-            if (req.pmcID.equals("7"))//Zingxu
-            {
-                String amt = request.getParameter("zingxuamt");
-                if (amt != null && !amt.trim().equals(""))
-                {
-                    try
-                    {
-                        cardInfo.chargeAmount = new Long(amt.trim().replaceAll(",", ""));
-                    }
-                    catch (Exception ex)
-                    {
-                        cardInfo.chargeAmount = -1L;
-                    }
-                }
-                SSO3Account account = getSSO3Account(request);
-                if (account != null)
-                {
-                    req.addInfo = account.userName + ";" + account.userId;
-                }
-
-            }
-            if (req.pmcID.equals("22"))//Thap Phong
-            {
-                String amt = request.getParameter("thapphongxuamt");
-                if (amt != null && !amt.trim().equals(""))
-                {
-                    try
-                    {
-                        cardInfo.chargeAmount = new Long(amt.trim().replaceAll(",", ""));
-                    }
-                    catch (Exception ex)
-                    {
-                        cardInfo.chargeAmount = -1L;
-                    }
-                }
-                SSO3Account account = getSSO3Account(request);
-                if (account != null)
-                {
-                    req.addInfo = account.userName + ";" + account.userId;
-                }
-
-            }
+//            if (req.pmcID.equals("7"))//Zingxu
+//            {
+//                String amt = request.getParameter("zingxuamt");
+//                if (amt != null && !amt.trim().equals(""))
+//                {
+//                    try
+//                    {
+//                        cardInfo.chargeAmount = new Long(amt.trim().replaceAll(",", ""));
+//                    }
+//                    catch (Exception ex)
+//                    {
+//                        cardInfo.chargeAmount = -1L;
+//                    }
+//                }
+//                SSO3Account account = getSSO3Account(request);
+//                if (account != null)
+//                {
+//                    req.addInfo = account.userName + ";" + account.userId;
+//                }
+//
+//            }
+//            if (req.pmcID.equals("22"))//Thap Phong
+//            {
+//                String amt = request.getParameter("thapphongxuamt");
+//                if (amt != null && !amt.trim().equals(""))
+//                {
+//                    try
+//                    {
+//                        cardInfo.chargeAmount = new Long(amt.trim().replaceAll(",", ""));
+//                    }
+//                    catch (Exception ex)
+//                    {
+//                        cardInfo.chargeAmount = -1L;
+//                    }
+//                }
+//                SSO3Account account = getSSO3Account(request);
+//                if (account != null)
+//                {
+//                    req.addInfo = account.userName + ";" + account.userId;
+//                }
+//
+//            }
         }
 
         String json = cardInfo.toJsonString();
@@ -284,18 +283,18 @@ public class ResultController extends DbgFrontendCore
             }
             else
             {
-                if(req.pmcID.equals("7") && 
-                        cardInfo.chargeAmount < DbgFrontEndConfig.MinZingXu)
-                {
-                    String resturnMSG = "Số ZingXu phải lớn hơn hoặc bằng "+DbgFrontEndConfig.MinZingXu+".<br/> Vui lòng quay lại ứng dụng để thực hiện giao dịch khác!";
-                    int errorCode = -66; //ZX_CHARGE_AMT_INVALID(-66)
-                    dic.showSection("notify");
-                    dic.setVariable("message", resturnMSG);
-                    dic.setVariable("transid", request.getParameter("transid"));
-                    SetValuesForRedirectInformationForNotify(request, dic, String.valueOf(errorCode), resturnMSG);
-                }
-                else                    
-                {               
+//                if(req.pmcID.equals("7") && 
+//                        cardInfo.chargeAmount < DbgFrontEndConfig.MinZingXu)
+//                {
+//                    String resturnMSG = "Số ZingXu phải lớn hơn hoặc bằng "+DbgFrontEndConfig.MinZingXu+".<br/> Vui lòng quay lại ứng dụng để thực hiện giao dịch khác!";
+//                    int errorCode = -66; //ZX_CHARGE_AMT_INVALID(-66)
+//                    dic.showSection("notify");
+//                    dic.setVariable("message", resturnMSG);
+//                    dic.setVariable("transid", request.getParameter("transid"));
+//                    SetValuesForRedirectInformationForNotify(request, dic, String.valueOf(errorCode), resturnMSG);
+//                }
+//                else                    
+//                {               
                     //Save TransationID first
                     SaveSessionTransID(request);
                     //Call Submit validation ATM 
@@ -349,7 +348,7 @@ public class ResultController extends DbgFrontendCore
                         }
                     }
                 
-                }
+               /// }
                 
             }
         }

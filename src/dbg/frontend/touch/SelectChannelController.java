@@ -34,7 +34,6 @@ import org.apache.thrift.TException;
 
 import java.util.List;
 import java.util.Map;
-import javax.servlet.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
@@ -45,7 +44,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
-import org.eclipse.jetty.server.handler.ContextHandler;
 
 /**
  *
@@ -94,23 +92,24 @@ public class SelectChannelController extends DbgFrontendCore {
 
                                 echoAndStats(startTime, renderPMCByTemplate(request, dbg.enums.PMCIDGroupEnum.PAY123.getValue()), response);
 
-                            } else {
-                                //Change for zalo to get info of wphone         
-                                String _n_platform = request.getParameter("pl");
-                                if (_n_platform != null && !_n_platform.isEmpty()) {
-                                    if (_n_platform.equalsIgnoreCase("wphone")
-                                            || _n_platform.equalsIgnoreCase("wp")) {
-                                        _n_platform = "wp";
-                                    }
-                                }
-                                RequestDispatcher rd = ContextHandler.getCurrentContext().getRequestDispatcher("/thanhtoan?" + "pl=" + _n_platform);
-                                if (rd != null) {
-
-                                    rd.forward(request, response);
-                                } else {
-                                    processRequest(request, response);
-                                }
-                            }
+                            } 
+//                            else {
+//                                //Change for zalo to get info of wphone         
+//                                String _n_platform = request.getParameter("pl");
+//                                if (_n_platform != null && !_n_platform.isEmpty()) {
+//                                    if (_n_platform.equalsIgnoreCase("wphone")
+//                                            || _n_platform.equalsIgnoreCase("wp")) {
+//                                        _n_platform = "wp";
+//                                    }
+//                                }
+//                                RequestDispatcher rd = ContextHandler.getCurrentContext().getRequestDispatcher("/thanhtoan?" + "pl=" + _n_platform);
+//                                if (rd != null) {
+//
+//                                    rd.forward(request, response);
+//                                } else {
+//                                    processRequest(request, response);
+//                                }
+//                            }
                         } else {
                             processRequest(request, response);
 
