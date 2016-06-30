@@ -9,7 +9,7 @@ import dbg.entity.MiniAppServerEntity;
 
 import dbg.frontend.config.DbgFrontEndConfig;
 
-import dbg.frontend.touch.entity.SSO3Account;
+//import dbg.frontend.touch.entity.SSO3Account;
 import dbg.util.AES256Algorithm;
 import hapax.Template;
 import hapax.TemplateDataDictionary;
@@ -22,15 +22,12 @@ import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
-import session.vngauth.client.VngAuthClient;
 
 /**
  *
@@ -111,79 +108,79 @@ public class DbgFrontendCore extends HttpServlet {
         }
     }
 
-    protected SSO3Account getSSO3Account(HttpServletRequest req) throws IOException, Exception {
-        SSO3Account account = null;
-        req.setAttribute("login", false);
-        String vngAuth = null;
-        Cookie[] cookies = req.getCookies();
-        for (Cookie cookie : cookies) {
-            String cName = cookie.getName();
-            if (cName.compareTo("vngauth") == 0) {
-                vngAuth = cookie.getValue();
-                if ("null".equals(vngAuth)) {
-                    vngAuth = null;
-                }
-            }
-        }
+//    protected SSO3Account getSSO3Account(HttpServletRequest req) throws IOException, Exception {
+//        SSO3Account account = null;
+//        req.setAttribute("login", false);
+//        String vngAuth = null;
+//        Cookie[] cookies = req.getCookies();
+//        for (Cookie cookie : cookies) {
+//            String cName = cookie.getName();
+//            if (cName.compareTo("vngauth") == 0) {
+//                vngAuth = cookie.getValue();
+//                if ("null".equals(vngAuth)) {
+//                    vngAuth = null;
+//                }
+//            }
+//        }
+//
+//        if (vngAuth != null) {
+//            try {
+//
+//                VngAuthClient auth = VngAuthClient.getInstance(DbgFrontEndConfig.VNGAuthMasterService,
+//                        DbgFrontEndConfig.VNGAuthSlaveService, DbgFrontEndConfig.VNGAuthAuth,
+//                        DbgFrontEndConfig.VNGAuthSource);
+//                Map<String, String> result = auth.getUserLoggedin(vngAuth);
+//                // Session id is exist
+//                if (result != null) {
+//                    account = new SSO3Account();
+//                    account.userName = result.get("username");
+//                    account.userId = result.get("uin");
+//
+//                    req.setAttribute("userName", account.userName);
+//                    req.setAttribute("userId", result.get("uin"));
+//                    req.setAttribute("login", true);
+//                    //isLoginUser = true;
+//                }
+//            } catch (Exception ex) {
+//
+//                //TODO: LogService.writeException(ex.getMessage(), ex);
+//                logger.error(String.format("getSSO3Account->StackTrace:%s", ExceptionUtils.getStackTrace(ex)));
+//                logger.error(String.format("getSSO3Account->RootCause:%s", ExceptionUtils.getRootCause(ex)));
+//                throw ex;
+//            }
+//        }
+//        return account;
+//    }
 
-        if (vngAuth != null) {
-            try {
-
-                VngAuthClient auth = VngAuthClient.getInstance(DbgFrontEndConfig.VNGAuthMasterService,
-                        DbgFrontEndConfig.VNGAuthSlaveService, DbgFrontEndConfig.VNGAuthAuth,
-                        DbgFrontEndConfig.VNGAuthSource);
-                Map<String, String> result = auth.getUserLoggedin(vngAuth);
-                // Session id is exist
-                if (result != null) {
-                    account = new SSO3Account();
-                    account.userName = result.get("username");
-                    account.userId = result.get("uin");
-
-                    req.setAttribute("userName", account.userName);
-                    req.setAttribute("userId", result.get("uin"));
-                    req.setAttribute("login", true);
-                    //isLoginUser = true;
-                }
-            } catch (Exception ex) {
-
-                //TODO: LogService.writeException(ex.getMessage(), ex);
-                logger.error(String.format("getSSO3Account->StackTrace:%s", ExceptionUtils.getStackTrace(ex)));
-                logger.error(String.format("getSSO3Account->RootCause:%s", ExceptionUtils.getRootCause(ex)));
-                throw ex;
-            }
-        }
-        return account;
-    }
-
-    protected String getUserName(HttpServletRequest req) {
-        String vngAuth = null;
-        Cookie[] cookies = req.getCookies();
-        for (Cookie cookie : cookies) {
-            String cName = cookie.getName();
-            if (cName.compareTo("vngauth") == 0) {
-                vngAuth = cookie.getValue();
-                if ("null".equals(vngAuth)) {
-                    vngAuth = null;
-                }
-            }
-        }
-
-        if (vngAuth != null) {
-            try {
-                VngAuthClient auth = VngAuthClient.getInstance(DbgFrontEndConfig.VNGAuthMasterService,
-                        DbgFrontEndConfig.VNGAuthSlaveService, DbgFrontEndConfig.VNGAuthAuth,
-                        DbgFrontEndConfig.VNGAuthSource);
-                Map<String, String> result = auth.getUserLoggedin(vngAuth);
-                // Session id is exist
-                if (result != null) {
-                    return result.get("username");
-                }
-            } catch (Exception ex) {
-                logger.error("VngAuthClient get userLogin : " + ex.getMessage());
-            }
-        }
-        return null;
-    }
+//    protected String getUserName(HttpServletRequest req) {
+//        String vngAuth = null;
+//        Cookie[] cookies = req.getCookies();
+//        for (Cookie cookie : cookies) {
+//            String cName = cookie.getName();
+//            if (cName.compareTo("vngauth") == 0) {
+//                vngAuth = cookie.getValue();
+//                if ("null".equals(vngAuth)) {
+//                    vngAuth = null;
+//                }
+//            }
+//        }
+//
+//        if (vngAuth != null) {
+//            try {
+//                VngAuthClient auth = VngAuthClient.getInstance(DbgFrontEndConfig.VNGAuthMasterService,
+//                        DbgFrontEndConfig.VNGAuthSlaveService, DbgFrontEndConfig.VNGAuthAuth,
+//                        DbgFrontEndConfig.VNGAuthSource);
+//                Map<String, String> result = auth.getUserLoggedin(vngAuth);
+//                // Session id is exist
+//                if (result != null) {
+//                    return result.get("username");
+//                }
+//            } catch (Exception ex) {
+//                logger.error("VngAuthClient get userLogin : " + ex.getMessage());
+//            }
+//        }
+//        return null;
+//    }
 
 //    protected boolean storeZingMePaymentHidenInfo(HttpServletRequest request, String addinfo) {
 //
