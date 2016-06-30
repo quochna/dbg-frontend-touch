@@ -1,0 +1,24 @@
+.zdbg_wrapper.gunny{background:#965a27;}
+.gunny .zdbg_header{background:#3c1a10; border-bottom:1px solid #180e06;}
+.gunny .zdbg_header .zdbg_logo{background:url(../images/logo.png);}
+.gunny .zdbg_footer{color:#d8bca3;width:320px; margin:0 auto; text-align:left;}
+.zdbg_footer .fl{float:left;}
+.zdbg_footer .zdbg_logo{display:inline-block;margin:5px 5px 0 auto;width:72px;height:28px; background:url(../../../images/zingpaygate_logofooter.png) no-repeat;text-indent:-9999em; padding:5px 5px 0 0; border-right:1px solid #a16a3c;}
+.gunny .zdbgbtn{background:#fabb00;color:#3c1a10;}
+.gunny .zdbgbtn:hover{background:#dda500;}
+.selected .inpRadio, .selected .methodselect:hover .inpRadio{background-position:-80px -32px;}
+
+@media 
+	only screen and (-webkit-min-device-pixel-ratio:2),
+	only screen and (min-device-pixel-ratio:2),
+	only screen and (min--moz-device-pixel-ratio:2),
+	only screen and (-moz-min-device-pixel-ratio:2),
+	only screen and (-o-min-device-pixel-ratio:2/1),
+	only screen and (-webkit-min-device-pixel-ratio:1.75),
+	only screen and (min-device-pixel-ratio:1.75),
+	only screen and (min--moz-device-pixel-ratio:1.75),
+	only screen and (-moz-min-device-pixel-ratio:1.75),
+	only screen and (-o-min-device-pixel-ratio:1.75){
+		.gunny .zdbg_header .zdbg_logo{background-image:url(../images/logo@2x.png); background-size:114px 44px;}
+		.zdbg_footer .zdbg_logo{ background-image:url(../../../images/zingpaygate_logofooter@2x.png); background-size:72px 28px;}
+	}

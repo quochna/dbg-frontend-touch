@@ -1,0 +1,204 @@
+html,body,div,span,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,abbr,address,cite,code,del,dfn,em,img,ins,kbd,q,samp,small,strong,sub,sup,var,b,i,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,figcaption,figure,footer,header,hgroup,menu,nav,section,summary,time,mark,audio,video{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent;}
+ul,ol,li{margin:0;padding:0;list-style:none;}
+body{line-height:1;}
+
+article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block;}
+nav ul{list-style:none;}
+blockquote,q{quotes:none;}
+blockquote:before,blockquote:after,q:before,q:after{content:'';content:none;}
+a{margin:0;padding:0;font-size:100%;vertical-align:baseline;background:transparent;}
+del{text-decoration:line-through;}
+abbr[title],dfn[title]{border-bottom:1px dotted;cursor:help;}
+table{border-collapse:collapse;border-spacing:0;}
+hr{display:block;height:1px;border:0;border-top:1px solid #ccc;margin:1em 0;padding:0;}
+input,select{vertical-align:middle;}
+
+html, body{font-size:14px;font-family:"Roboto", Helvetica, Arial;line-height:20px; height:100%;}
+a{color:#009ae0;text-decoration:underline;outline:none;}
+a:hover{color:#333;text-decoration:none;}
+.clearfix:after {content: "";display: table;clear: both;}
+.fl{float:left;}
+.fr{float:right;}
+.grey{color:#666;}
+
+/* #### [sprite] #### */
+.zdbgsprt{background-image:url("../images/zpgsprt.png");background-repeat:no-repeat;}
+.bankingsprt{width:32px; height:32px; display:inline-block; vertical-align:-4px; margin-right:2px; background-image:url("../images/logobanking.png"); background-repeat:no-repeat;}
+.bankingsprt.credit{width:58px; height:46px;}
+
+.icoarrow{width:24px; height:24px; background-position:0 -61px; position:absolute; top:13px; right:10px;}
+.icobagmoney{width:45px; height:53px; background-position:-30px -47px; display:inline-block; vertical-align:-5px;}
+
+/*Logo banking*/
+.vietcombank{background-position:0 0;}
+.vietinbank{background-position:0 -32px;}
+.dongabank{background-position:0 -64px;}
+.eximbank{background-position:0 -96px;}
+.techcombank{background-position:0 -128px;}
+.maritimebank{background-position:0 -160px;}
+.namabank{background-position:-48px 0;}
+.tienphongbank{background-position:-48px -32px;}
+.ocbgbank{background-position:-48px -64px;}
+.agribank{background-position:-48px -96px;}
+.bidvbank{background-position:-48px -128px;}
+.sacombank{background-position:-48px -160px;}
+.vibbank{background-position:-96px 0;}
+.mbbank{background-position:-96px -32px;}
+.acbbank{background-position:-96px -64px;}
+.vietabank{background-position:-96px -96px;}
+.hdbank{background-position:-96px -128px;}
+.ncbbank{background-position:-96px -160px;}
+.ctbank{background-position:-144px 0;}
+.vpbank{background-position:-144px -32px;}
+.pgbank{background-position:-144px -64px;}
+.oceanbank{background-position:-144px -96px;}
+.anbinhbank{background-position:-144px -128px;}
+.gpbank{background-position:-144px -160px;}
+.navibank{background-position:0 -192px;}
+.visa{background-position:0 -225px;}
+.mastercard{background-position:-64px -225px;}
+.jcb{background-position:-128px -229px;}
+.shbbank{background-position:0 -276px;}
+.seabank{background-position:-48px -276px;}
+.bvbank{background-position:-96px -276px;}
+.lbbank{background-position:-132px -276px;}
+
+
+/* #### [structure] #### */
+.zdbg_wrapper{background-color:#f2f2f2;}
+.zdbg_header{background-color:#252525;border-bottom:1px solid #252525; width:100%;padding:1px 0px;position:fixed;top:0;left:0;line-height:normal;z-index:10;}
+.zdbg_header .navback{float:left;width:32px;height:26px;background-position:-32px -30px;margin-left:10px;margin-top:10px;}
+.zdbg_header .zdbg_logo{display:block;margin:0 auto;width:114px;height:44px;background:url("../images/zingpaygate_logo.png") no-repeat;text-indent:-9999em;}
+.zdbg_body{border-radius:5px;box-shadow:0 0 3px #ccc;background-color:#fff;padding:8px;margin:54px 8px 10px;min-height:320px; position:relative;}
+.zdbg_body.acc{min-height:inherit;}
+.zdbg_body.bxcont{ min-height:inherit; margin-top:0;}
+.zdbg_footer{padding:0 0 10px;text-align:center;color:#888;font-size:12px;}
+.paymentcont{padding:0 10px 10px;}
+.paymentcont.atm{ padding:0; margin-left:-8px; margin-right:-8px;}
+.paymentcont.atm .fbtn{padding:10px;}
+.headingcont{color:#333;font-size:18px;line-height:28px;font-weight:normal; margin-top:-5px;}
+.atm .headingcont{padding:0 10px;}
+.headingcont strong{color:#333;font-size:20px;font-weight:bold;}
+
+/*stepbar*/
+.zdbg_stepbar{padding:10px 8px 0;margin:-8px -8px 10px;clear:both;height:16px;border-bottom:1px solid #eee;background-color:#f7f7f7;border-radius:5px 5px 0 0;overflow:hidden;}
+.zdbg_stepbar .progessdone{background-color:#EB3001;}
+.zdbg_stepbar ul{display:block;width:90%;padding-right:10%;background-color:#e3e2e2;height:8px;border-radius:40px;}
+.zdbg_stepbar li{width:40%;float:left;height:8px;border-radius:10px;}
+.zdbg_stepbar li.step1{width:10%;}
+.zdbg_stepbar li.step2,.zdbg_stepbar li.step3{width:45%;}
+.zdbg_stepbar li .stepnode{float:right;width:20px;height:20px;margin-top:-7px;margin-right:-10px;position:relative;background-color:#e3e2e2;border-radius:100%;line-height:18px;font-weight:bold;text-align:center;color:#999;font-size:14px;}
+.zdbg_stepbar li.step3 .stepnode{margin-right:-18px;}
+.zdbg_stepbar li .stepname{display:none;padding-top:24px;text-align:left;color:#999;margin-right:-100%;font-size:14px;white-space:nowrap;text-align:center;}
+.zdbg_stepbar li.passed,.zdbg_stepbar li.active{background-color:#eb3001;}
+.zdbg_stepbar li.passed .stepnode,.zdbg_stepbar li.active .stepnode{background-color:#eb3001;color:#fff;}
+.zdbg_stepbar li.passed .stepname,.zdbg_stepbar li.active .stepname{color:#c94818;}
+.zdbg_stepbar li.active .stepname{display:block;}
+
+/*form layout*/
+.formrow{padding:5px 0;}
+.formrow .flb{font-weight:bold;font-size:16px;padding-bottom:5px;display:block;color:#666;}
+.formrow .textinput, select{padding:6px;width:100%;font-size:16px;color:#333;border-radius:3px;border:1px solid #aaa;box-sizing:border-box;-moz-box-sizing:border-box;box-shadow:0 0 4px #ddd inset; font-weight:bold;}
+.formrow .textinput.readonly{border:none;padding:9px 0;color:#333;}
+.fbtn, .atm .fbtn{padding-top:8px;}
+.fbtn:after{content: "";display: table;clear: both;}
+.fbtn .btn01,.fbtn .btn02{float:left;width:50%;}
+.fbtn .btn01 .zdbgbtn{margin-right:4px;}
+.fbtn .btn02 .zdbgbtn{margin-left:4px;}
+
+.zdbgbtn{display:block;text-align:center;font-size:18px;padding:6px 5px 8px;border-radius:4px;background:#009bdf;/*border-bottom:4px solid #0383bc;*/color:#fff;text-decoration:none;line-height:normal; font-weight:bold;}
+.bxzingxu .zdbgbtn{ margin-top:8px; padding:6px 10px 8px; border-bottom:none;}
+.zdbgbtn:hover{background:#008cc9;border-bottom-color:#016997;color:#fff;}
+.zdbgbtn.back{background:#dcdcdc;color:#444;}
+.zdbgbtn.back:hover{background:#c8c8c8;}
+.zdbg_errormsg{color:#cc0000;font-size:13px;line-height:normal;margin-top:-1px;padding-bottom:5px;}
+.zdbg_botlogin{position:absolute; left:50%; bottom:15px; width:168px; margin-left:-84px;}
+.zdbg_botlogin a{text-decoration:none;}
+.zdbg_botlogin span{ margin:0 5px; color:#777;}
+
+/*choose a payment method*/
+.paymentmethods li{font-size:20px;padding:2px 0;line-height:normal;}
+.paymentmethods li.atm{border-bottom:1px solid #eee; padding:7px 42px 7px 10px; position:relative; font-size:18px;}
+.paymentmethods li.end{border-bottom:none;}
+.paymentmethods li .methodselect{display:block;color:#333;cursor:pointer;}
+.paymentmethods .methodname{font-weight:normal;}
+.paymentmethods .methodname .checkmark{display:none;}
+.default_radio{display:none;visibility:hidden;margin-left:-24px;}
+.inpRadio{width:24px;height:24px;margin-right:3px;vertical-align:-3px;background-position:0 -32px;display:inline-block;}
+.methodselect:hover .inpRadio{background-position:0 0}
+.selected .inpRadio,.selected .methodselect:hover .inpRadio{background-position:-32px 0;}
+
+.paymentmethods.credit li .inpRadio{vertical-align:5px;}
+.paymentmethods.credit li .icoarrow{top:18px;}
+
+/*Zingxu payment confirm*/
+.acc_welcometext{border-bottom:1px solid #c3c1c2;padding-bottom:10px;margin-bottom:10px;box-shadow:0 1px #e2e2e2;line-height:26px;font-size:16px;}
+.acc_welcometext strong{font-size:16px;}
+.acc_welcometext .zxu_amount{color:#44a609;}
+.txtbotacc{font-size:14px; color:#777; line-height:30px; font-style:italic;}
+.zxuform .headingcont,.zxuform .headingcont strong{font-size:14px;}
+.zxutbl{font-size:14px;margin:0 auto 12px;overflow:hidden;}
+.zxutbl .tblheader{background-color:#e3e1e2;border:1px solid #cdcdcd;border-bottom:0 none;float:left;width:110px;}
+.zxutbl .tblheader span.tblcell{font-weight:bold}
+.zxutbl span.tblcell{display:block;line-height:36px;height:36px;padding:0 5px;border-bottom:1px solid #cdcdcd;}
+.zxutbl .tblrow{border:1px solid #cdcdcd;border-bottom:0 none;margin-left:110px;}
+.icn_zingxu{width:16px;height:16px;background-position:-64px 0;margin:0 5px;display:inline-block;vertical-align:-2px;}
+
+/*Result*/
+.resulttext{font-size:15px;line-height:28px;text-align:center;}
+.resulttext .moneynum{color:#cc0000;}
+
+/*maintenance*/
+.maintenance_pic{display:block;width:288px;height:100px;text-indent:-99999em;margin:20px auto;background-image:url("../images/maintenance.png");}
+.zdbg_wrapper .bxerror{ background:#fcf3b7; border:1px solid #bcaa35; padding:8px 10px; text-align:center; margin-bottom:10px; font-weight:bold; color:#444;}
+
+.ctnselbank{ padding:0 10px; font-size:18px;}
+.atm .payment_form{ padding:10px 10px 0;}
+
+/* @@@[ login page ]@@@ */
+.zingpay_bglogin{height:100%;background:#252525;min-width:320px;}
+.login_logo{padding-top:30px;padding-bottom:30px;}
+.login_logo h1{display:block;margin:0 auto;width:137px;height:53px;background: url("../images/logo_login.png") no-repeat;text-indent:-99999em;}
+.bxlogin{margin:0 25px 20px;background:#fff;border-radius:5px;box-shadow:0 1px 1px rgba(0,0,0,0.15);}
+.bxlogin.error{background:#fff0f1; border:1px solid #e54848;-webkit-border-top-left-radius: 5px;-webkit-border-top-right-radius: 5px;-moz-border-radius-topleft: 5px;-moz-border-radius-topright: 5px;border-top-left-radius: 5px;border-top-right-radius: 5px;-webkit-border-bottom-left-radius: 0;-webkit-border-bottom-right-radius: 0;-moz-border-radius-bottomleft: 0;-moz-border-radius-bottomright: 0;border-bottom-left-radius: 0;border-bottom-right-radius: 0;}
+.error_login{ margin:-20px 25px 20px; color:#fff; background:#ea7070; padding:5px 10px;-webkit-border-bottom-right-radius: 5px;-webkit-border-bottom-left-radius: 5px;-moz-border-radius-bottomright: 5px;-moz-border-radius-bottomleft: 5px;border-bottom-right-radius: 5px;border-bottom-left-radius: 5px;}
+	.rowregister{border-top:1px solid #ccc;padding:0 10px;}
+	.bxlogin.error .rowregister{border-top:1px solid #e54848;}
+	.rowregister:first-child, .bxlogin.error .rowregister:first-child{ border-top:none;}
+	.rowregister.end{border-bottom:none;}
+	.inputreg{width:100%;height:42px;line-height:45px;font-size:16px;color:#808080; border:none;}
+	.bxlogin.error .inputreg{background:#fff0f1; color:#e54848;}
+	.bxbutton{padding:0 25px;}
+	.btnlogin{height:45px;line-height:45px;border-radius:5px;font-size:20px;color:#ccffff;cursor:pointer;box-shadow:0 1px 0 #006699;text-transform:uppercase;display:block;width:100%; background: #009bdf; font-weight:bold;}
+.bxregbottom{width:300px;margin:0 auto;padding-top:50px;}
+.bxregbottom .btnreg{border-radius:3px;border:1px solid #111;display:block;font-weight:bold;text-transform:uppercase;color:#888;padding:6px 0;text-align:center;width:180px;margin:0 auto 10px;box-shadow:0 2px 1px #333 inset;font-size:16px;background:#151515;}
+.bxregbottom .textfooter{font-size:13px;color:#fff;text-align:center;opacity:0.5;-webkit-opacity:0.5;-moz-opacity:0.5;padding-bottom:15px;}
+
+/*Tai khoan*/
+.zdbg_body .bxzingxu{margin-top: 10px;}
+.zdbg_body .row{margin-bottom:10px; display:block; line-height:25px;}
+.zdbg_body .row .lt_row, .zdbg_body .rowls .lt_row{width:100px; float:left;}
+.zdbg_body .rowls .lt_row{color:#777;}
+.txtmoney{font-weight:bold; color:#cc0000; font-size:16px;}
+.zdbg_body .rowls{clear:both;margin-bottom:10px; display:block; line-height:25px;}
+
+@media 
+	only screen and (-webkit-min-device-pixel-ratio:2),
+	only screen and (min-device-pixel-ratio:2),
+	only screen and (min--moz-device-pixel-ratio:2),
+	only screen and (-moz-min-device-pixel-ratio:2),
+	only screen and (-o-min-device-pixel-ratio:2/1),
+	only screen and (-webkit-min-device-pixel-ratio:1.75),
+	only screen and (min-device-pixel-ratio:1.75),
+	only screen and (min--moz-device-pixel-ratio:1.75),
+	only screen and (-moz-min-device-pixel-ratio:1.75),
+	only screen and (-o-min-device-pixel-ratio:1.75){
+		.zdbgsprt{background-image:url("../images/zpgsprt@2x.png");background-size:104px 104px;}
+		.maintenance_pic{background-image:url("../images/maintenance@2x.png")!important;background-size:288px 100px;}
+		.zdbg_header .zdbg_logo{background-image:url("../images/zingpaygate_logo@2x.png");background-size:114px 44px;}
+		.bankingsprt{ background-image:url("../images/logobanking@2x.png"); background-size:200px 280px;}
+		.login_logo h1{background:url("../images/logo_login@2x.png") no-repeat;background-size:137px 53px;}
+	}
+	@media screen and (device-aspect-ratio: 40/71) {
+		.zdbg_body{min-height:410px;}
+	}

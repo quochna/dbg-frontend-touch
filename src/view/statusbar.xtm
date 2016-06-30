@@ -1,0 +1,47 @@
+{{#STEP1}}
+<div class="zdbg_stepbar">
+    <ul class="">
+        <li class="step1 active ">
+            <span class="stepnode">1</span>
+        </li>
+        <li class="step2">
+            <span class="stepnode">2</span>
+        </li>
+        <li class="step3">
+            <span class="stepnode">3</span>
+        </li>
+    </ul>
+</div>
+{{/STEP1}}
+
+{{#STEP2}}
+<div class="zdbg_stepbar">
+    <ul class="">
+        <li class="step1 passed ">
+            <span class="stepnode">1</span>
+        </li>
+        <li class="step2  active ">
+            <span class="stepnode">2</span>
+        </li>
+        <li class="step3">
+            <span class="stepnode">3</span>
+        </li>
+    </ul>
+</div>
+{{/STEP2}}
+
+{{#STEP3}}
+<div class="zdbg_stepbar">
+    <ul class="">
+        <li class="step1 passed ">
+            <span class="stepnode">1</span>
+        </li>
+        <li class="step2 passed ">
+            <span class="stepnode">2</span>
+        </li>
+        <li class="step3 active">
+            <span class="stepnode">3</span>
+        </li>
+    </ul>
+</div>
+{{/STEP3}}

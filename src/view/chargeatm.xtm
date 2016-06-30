@@ -1,0 +1,195 @@
+          
+         
+         
+        
+       <div class="paymentcont atm">
+       <p class="ctnselbank">
+           <span class="bankingsprt {{banklogo}}"></span>{{bankname}}</p>
+       
+        <div class="payment_form">
+           
+                <div class="formrow">
+
+                    <input name="chargeamt" id="chargeamt" class="textinput" tabindex="1"
+                          onchange="validatechargeamt();"   
+                          onkeyup ="FilterInput(event);" autofocus="true" 
+                          placeholder="Số tiền"  
+                          value="{{chargeamt}}" {{disable}}
+                          type="text" 
+                          maxlength="11" />
+                </div>
+                <div class="zdbg_errormsg">
+
+                        <label class="zdbg_errormsg" id="chargeamterror" 
+                               name="chargeamterror" >
+                                {{chargeamterror}}
+                        </label>
+                </div>
+          </div>
+   </div>   
+            <div class="fbtn">
+                 
+                    <p class="btn01"><a href="javascript:;" onclick="resetToAtmChannel();closePayment();" class="zdbgbtn back" tabindex="3">Hủy</a></p>
+                    <p class="btn02"><a href="#" class="zdbgbtn" href="javascript:;" onclick="submitCharge();" tabindex="2">Xác nhận</a></p>
+            </div>
+          
+       <input type="hidden" name ="step" value="pmc" />
+       <input type="hidden" name ="chargeamtcalculated"  id="chargeamtcalculated"  value="{{chargeamtcalculated}}" />  
+            
+      <script type='text/javascript'>
+                //test case cancel
+                var _n_url_redirect = "{{_n_url_redirect}}";
+                //predefine		
+                var _n_state = "{{_n_state}}"; // billing or billed => o trang thanh cong => khi billed thanh cong / that bat ajax set lai _n_state 
+                var _n_result = -1; //khi o state billed : result = 1: success, result < 1 : failed 
+                var _n_error_code = 0; //khi billed failed thi truyen error_code va error_msg 
+                var _n_error_msg = ""; //khi billed failed thi truyen error_code va error_msg 
+                var _n_tranxid = "{{_n_tranxid}}"; 
+                var _n_apptranxid = "{{_n_apptranxid}}"; 
+                var _n_netamount = "{{_n_netamount}}"; 
+                var _n_platform = "{{_n_platform}}"; //lay tren query string platform : android, ios, wp, bb, lay tu querystring "pl"
+                var _n_db = 0;         
+                var _n_pmc = "{{_n_pmc}}";
+                var _n_grossamount = "{{_n_grossamount}}";
+                
+                
+                function resetToAtmChannel()
+                {
+                    if(_n_pmc >= 100)
+                        _n_pmc = 6 ; //ATM
+                }
+          
+                function submitCharge()
+                {
+                    if(validate(this))
+                    {
+                        document.getElementById('frmCharge').submit();
+                        return true;
+                    }else
+                        {
+                            return false;
+                        }
+                }
+                
+                function submitBack()
+                {
+                  
+                   var backObj =  document.getElementById("isBack");
+                   if(backObj!=null)
+                    {
+                        backObj.value="1";
+
+                    }
+                    document.getElementById('frmCharge').action="/chonkenhthanhtoan";
+                    document.getElementById('frmCharge').submit();
+                  
+                }
+       </script>
+       
+       
+       <script type="text/javascript">
+           
+           var submitclick = false;
+          
+           var _minatmmoney = "{{minatmmoney}}";
+           var _maxatmmoney = "{{maxatmmoney}}";
+           var _discount_rate ="{{discount_rate}}";
+            
+            function validate(form)
+            {
+                submitclick = true; 
+                var resultvalidatechargeamt =  validatechargeamt();                         
+                submitclick = false; 
+                return resultvalidatechargeamt;
+            }
+            function validatechargeamt()
+            {
+                var numbers = /^[0-9]+$/;  
+                var chargeAmt = document.getElementById('chargeamt').value;         
+                
+                chargeAmt = chargeAmt.replace(/,/g, '');
+                if(!chargeAmt.match(numbers))  
+                { 
+                    document.getElementById('chargeamterror').innerHTML="<p>Số tiền phải là kiểu số</p>";
+                    return false;
+                }                
+                if(chargeAmt < Number(_minatmmoney))
+                {                        
+                    var fmin = "{{minatmmoney}}";
+                    var formatmin = insertCommas(fmin) ;
+                    document.getElementById('chargeamterror').innerHTML="<p>Số tiền phải lớn hơn hoặc bằng "+formatmin+" VNĐ</p>";
+                    return false;
+                }else if(chargeAmt > Number(_maxatmmoney))
+                {
+                    var fmax = "{{maxatmmoney}}";
+                    var formatmax = insertCommas(fmax) ;
+                    document.getElementById('chargeamterror').innerHTML="<p>Số tiền phải nhỏ hơn hoặc bằng "+formatmax+" VNĐ</p>";
+                    return false;
+                } 
+                else if(chargeAmt%10000!==0)
+                {
+                    document.getElementById('chargeamterror').innerHTML="<p>Số tiền phải là bội số của 10,000</p>";
+                    return false;
+                }
+                else
+                {   
+                    
+                    var realmoney = (chargeAmt*(100-Number(_discount_rate)))/100;
+                    var obj = document.getElementById('chargeamtcalculated');
+                    if(obj!=null)
+                    {
+                        obj.value = realmoney;
+                    }                           
+                    if(_discount_rate!=null && _discount_rate!=0 && _discount_rate!="")
+                    {                      
+                       
+                        var frealmoney = insertCommas(realmoney+"");                       
+                        var fpercent = _discount_rate + " %";                        
+                        document.getElementById('chargeamterror').innerHTML="<p>Giảm "+fpercent +". Bạn chỉ phải trả "+frealmoney+" VNĐ</p>";
+                    }else
+                    {
+                        document.getElementById('chargeamterror').innerHTML="";
+                    }
+                }
+
+                formatchargeamt(document.getElementById('chargeamt')) ;
+                return true;
+            }
+            
+           function formatchargeamt(obj) 
+           {       
+               var number = obj.value;
+              
+                var amount = number.replace(/,/g, '');
+                var arr = insertCommas(amount);        
+        
+                obj.value = arr; 
+               
+           }
+           
+            function insertCommas(nStr)
+            {
+               
+                return nStr.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
+                 
+            }
+            
+            
+            function FilterInput (event)
+            {
+                    var keyCode = ('which' in event) ? event.which : event.keyCode;
+
+                    isNumeric = (keyCode >= 48  && keyCode <= 57 ) ||
+                                (keyCode >= 96  && keyCode <= 105 ) || 
+                                (keyCode===8);
+                 
+                    if(isNumeric)
+                    {
+                         formatchargeamt(document.getElementById('chargeamt')) ;
+                         validatechargeamt();
+                    }
+            }
+            
+        </script>
+</div>
+   

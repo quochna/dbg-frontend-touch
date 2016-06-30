@@ -1,0 +1,80 @@
+
+
+<div class="paymentcont atm">
+    <h2 class="headingcont"><strong>{{PMC_HEADER}}</strong></h2>
+       <ul class="paymentmethods">
+           
+            {{#PMC}}     
+            <li class="atm {{selected}}" id="{{pmcid}}">
+                
+                    <label class="methodselect">
+                        
+                            <span class="inpRadio zdbgsprt"></span>
+                            
+                            <input type="radio" class="default_radio" 
+                                   onclick="RadioOnClick(this)" 
+                                     name="pmcid" value="{{pmcid}}" {{checked}}
+                                     id ="rd{{pmcid}}">   
+                                     
+                                <strong class="methodname">
+                                        <span class="checkmark zdbgsprt"></span>
+                                        <span class="bankingsprt {{banklogo}}"></span>
+                                        {{pmcname}}
+                                </strong>
+                            <span class="zdbgsprt icoarrow" id="sp{{pmcid}}"
+                                        onclick="SpanRadioOnClick(this);"></span>
+                            </input>
+                    </label>
+              
+	    </li>
+	{{/PMC}}  	
+            
+	</ul>
+				
+</div>
+
+
+ <script type='text/javascript'>
+          
+              
+                function RadioOnClick(obj)
+                {
+                    
+                  var elements = document.getElementsByClassName("selected");
+                  for(var i = 0, length = elements.length; i < length; i++) 
+                  {
+                        
+                           elements[i].className="atm";
+                       
+                    }
+                    var pmcid = obj.value;                    
+                    document.getElementById(pmcid).setAttribute("class","atm selected");
+                }
+                function SpanRadioOnClick(obj)
+                {
+                  var elements = document.getElementsByClassName("selected");
+                  for(var i = 0, length = elements.length; i < length; i++) 
+                  {
+                        
+                           elements[i].className="atm";
+                       
+                    }
+                    
+                    var sppmcid = obj.id;    
+                    var pmcid;
+                    if(sppmcid!=null && sppmcid.length > 2)  
+                    {
+                        pmcid = sppmcid.substring(2);
+                    }
+                    document.getElementById(pmcid).setAttribute("class","atm selected");
+                    var  radio = document.getElementById("rd"+pmcid);
+                    if(radio!=null)
+                    {
+                        radio.checked = true;
+                    }                    
+                    document.getElementById('frmSelectChannel').submit();
+                    
+                }
+               
+                
+       </script>

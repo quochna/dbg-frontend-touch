@@ -1,0 +1,184 @@
+
+        <h2 class="headingcont">
+            {{PMC_CHARGE_HEADER}} <strong>{{appname}}</strong>
+        </h2>
+        
+        <div class="payment_form">
+            <div class="formrow">
+                  
+                <div class="formfield">
+                    <input name="cardserial" id="cardserial" class="textinput" 
+                     value="{{cardserial}}" autofocus="true" 
+                     placeholder="Số seri" type="text" tabindex="1"
+                     maxlength="15"  onchange="validateCardserial();" />
+                    
+                </div>
+                         
+            </div>
+            <div class="zdbg_errormsg">
+                <label class="" id="cardserialerror"></label>
+            </div>
+            <div class="formrow">
+                  
+                     <input name="cardpassword" id="cardpassword" class="textinput" 
+                         placeholder="Mật mã thẻ"   value="" type="text" tabindex="2" 
+                         maxlength="15" onchange="validateCardpass();" 
+                         onkeyup ="FilterInput(event);" />
+                         
+            </div>
+            <div class="zdbg_errormsg">
+                    
+                    <label class="zdbg_errormsg" id="cardpassworderror">
+                       
+                    </label>
+            </div>
+            <div class="fbtn">
+                 
+                    <p class="btn01"><a href="javascript:;" onclick="closePayment();" tabindex="4"  class="zdbgbtn back">Hủy</a></p>
+                    <p class="btn02"><a href="#" class="zdbgbtn" tabindex="3"  href="javascript:;" onclick="submitCharge();">Nạp thẻ</a></p>
+            </div>
+            
+       <input type="hidden" name ="step" value="pmc" />
+            
+            
+      <script type='text/javascript'>
+                //test case cancel
+                var _n_url_redirect = "{{_n_url_redirect}}";
+                //predefine		
+                var _n_state = "{{_n_state}}"; // billing or billed => o trang thanh cong => khi billed thanh cong / that bat ajax set lai _n_state 
+                var _n_result = -1; //khi o state billed : result = 1: success, result < 1 : failed 
+                var _n_error_code = 0; //khi billed failed thi truyen error_code va error_msg 
+                var _n_error_msg = ""; //khi billed failed thi truyen error_code va error_msg 
+                var _n_tranxid = "{{_n_tranxid}}"; 
+                var _n_apptranxid = "{{_n_apptranxid}}"; 
+                var _n_netamount = "{{_n_netamount}}"; 
+                var _n_platform = "{{_n_platform}}"; //lay tren query string platform : android, ios, wp, bb, lay tu querystring "pl"
+                var _n_db = 0;         
+                var _n_pmc = "{{_n_pmc}}";
+                var _n_grossamount = "{{_n_grossamount}}";
+          
+          
+               
+                function submitCharge()
+                {
+                    if(validate(this))
+                    {
+                        document.getElementById('frmCharge').submit();
+                        return true;
+                    }else
+                        {
+                            return false;
+                        }
+                }
+                
+                function submitBack()
+                {
+                  
+                   var backObj =  document.getElementById("isBack");
+                   if(backObj!=null)
+                    {
+                        backObj.value="1";
+
+                    }
+                    document.getElementById('frmCharge').action="/chonkenhthanhtoan";
+                    document.getElementById('frmCharge').submit();
+                  
+                }
+       </script>
+       
+       
+       <script type="text/javascript">
+           
+           var submitclick = false;
+           function FilterInput (event)
+            {
+                var keyCode = ('which' in event) ? event.which : event.keyCode;
+
+                isNumeric =  (keyCode===13);
+
+                if(isNumeric)
+                    {
+
+                         submitCharge();
+                    }
+            }
+          
+           
+            function validate(form)
+            {
+                submitclick = true; 
+                var resultvalidateCardserial =  validateCardserial();
+                var resultvalidateCardpass = validateCardpass();               
+                submitclick = false; 
+                return resultvalidateCardserial&&resultvalidateCardpass;
+            }
+            function validateCardserial()
+            {
+                  //
+                 //<p>Kiểm tra lại số seri chưa đúng</p>
+                 var cardcode = document.getElementById('cardserial').value;
+                 var patternCardCode = {{tco_patternCardCode}};
+                 
+                 if(!patternCardCode.test(cardcode))
+                 {                
+                 
+                     if(cardcode.length >0 )
+                        document.getElementById('cardserialerror').innerHTML="<p>Kiểm tra lại số seri chưa đúng</p>";
+                     else
+                         {
+                            if(!submitclick)
+                                document.getElementById('cardserialerror').innerHTML=""; 
+                            else
+                                document.getElementById('cardserialerror').innerHTML="<p>Kiểm tra lại số seri chưa đúng</p>";
+                         }
+                 
+                     return false;
+                 }
+                 else
+                     {
+                        document.getElementById('cardserialerror').innerHTML=""; 
+                        return true;
+                     }
+            }
+            function validateCardpass()
+            {
+                  //
+                 //<p>Kiểm tra lại số seri chưa đúng</p>
+                 var cardpass = document.getElementById('cardpassword').value;
+                 var patternCardPassword = {{tco_patternCardPassword}};
+                 
+                 if(!patternCardPassword.test(cardpass))                {                
+                     
+                     if(cardpass.length>0)
+                     {
+                        document.getElementById('cardpassworderror').innerHTML="<p>Xin vui lòng nhập đúng mật mã thẻ</p>";                 
+                     }
+                     else
+                        {
+                            if(!submitclick)
+                            {
+                                document.getElementById('cardpassworderror').innerHTML=""; 
+                            }else
+                                {
+                                    document.getElementById('cardpassworderror').innerHTML="<p>Xin vui lòng nhập đúng mật mã thẻ</p>";                 
+                                }
+                        }
+                     return false;
+                 }
+                 else
+                     {
+                        document.getElementById('cardpassworderror').innerHTML="";                  
+                        return true;
+                     }
+            }
+            function reportErrors(errors){
+             var msg = "Please Enter Valide Data...\n";
+             for (var i = 0; i<errors.length; i++) {
+             var numError = i + 1;
+              msg += "\n" + numError + ". " + errors[i];
+            }
+             alert(msg);
+            }
+        </script>
+</div>
+   

@@ -1,0 +1,124 @@
+
+       <h2 class="headingcont">
+            Nhập số OTP để thanh toán cho <strong>{{appname}}</strong>
+        </h2>
+        
+        <div class="payment_form" >
+            <div class="formrow">                 
+              
+            <div class="formrow">
+                    
+                     <input name="otp" id="otp" autofocus="true"
+                            class="textinput" placeholder="Số OTP" 
+                            value="" type="text" tabindex="1"
+                            maxlength="6"  
+                            onchange="validateotp();"
+                            onkeyup ="FilterInput(event);"/>
+            </div>
+            <div class="zdbg_errormsg">
+                    
+                    <label class="zdbg_errormsg" id="otperror" name="otperror">
+                       
+                    </label>
+            </div>              
+           
+                            
+                
+            <div class="fbtn">
+                 
+                    <p class="btn01"><a href="javascript:;"  onclick="closePayment();" class="zdbgbtn back" tabindex="3">Hủy</a></p>
+                    <p class="btn02"><a href="#" class="zdbgbtn" href="javascript:;" onclick="submitCharge();" tabindex="2" >Xác nhận</a></p>
+            </div>
+            
+       <input type="hidden" name ="step"  value="pmcgrp" />
+       <input type="hidden" name ="wctransid" id ="wctransid" value="{{wctransid}}" />
+       <input type="hidden" name ="phonenumber" id ="phonenumber" value="{{phonenumber}}" />
+       <input type="hidden" name ="chargeamt" id ="chargeamt" value="{{chargeamt}}" />   
+      
+      <script type='text/javascript'>
+                //test case cancel
+                var _n_url_redirect = "{{_n_url_redirect}}";
+                //predefine		
+                var _n_state = "{{_n_state}}"; // billing or billed => o trang thanh cong => khi billed thanh cong / that bat ajax set lai _n_state 
+                var _n_result = -1; //khi o state billed : result = 1: success, result < 1 : failed 
+                var _n_error_code = 0; //khi billed failed thi truyen error_code va error_msg 
+                var _n_error_msg = ""; //khi billed failed thi truyen error_code va error_msg 
+                var _n_tranxid = "{{_n_tranxid}}"; 
+                var _n_apptranxid = "{{_n_apptranxid}}"; 
+                var _n_netamount = "{{_n_netamount}}"; 
+                var _n_platform = "{{_n_platform}}"; //lay tren query string platform : android, ios, wp, bb, lay tu querystring "pl"
+                var _n_db = 0;         
+                var _n_pmc = "{{_n_pmc}}";
+                var _n_grossamount = "{{_n_grossamount}}";
+          
+          
+               
+                function submitCharge()
+                {
+                    if(validate(this))
+                    {
+                        document.getElementById('frmCharge').action="/ketquaotp";
+                        document.getElementById('frmCharge').submit();
+                        return true;
+                    }else
+                        {
+                            return false;
+                        }
+                }
+                
+                function submitBack()
+                {
+                  
+                   var backObj =  document.getElementById("isBack");
+                   if(backObj!=null)
+                    {
+                        backObj.value="1";
+
+                    }
+                    document.getElementById('frmCharge').action="/chonkenhthanhtoan";
+                    document.getElementById('frmCharge').submit();
+                  
+                }
+       </script>
+       
+       
+       <script type="text/javascript">
+           
+           var submitclick = false;
+          
+            function FilterInput (event)
+            {
+                    var keyCode = ('which' in event) ? event.which : event.keyCode;
+
+                    isNumeric =  (keyCode===13);
+                 
+                    if(isNumeric)
+                        {
+                            
+                             submitCharge();
+                        }
+            }
+           
+            function validate(form)
+            {
+               return validateotp();
+            }
+            function validateotp()
+            {
+                var otp = document.getElementById('otp').value;  
+                if(otp.length >0 )
+                {
+                    document.getElementById('otperror').innerHTML="";
+                    return true;    
+                     
+                }else
+                {
+                    document.getElementById('otperror').innerHTML="<p>Vui lòng nhập số OTP</p>";
+                    return false;
+                }
+                
+            }
+           
+        </script>
+</div>
+   

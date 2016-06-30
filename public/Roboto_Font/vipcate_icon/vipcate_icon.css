@@ -1,0 +1,72 @@
+@font-face {
+	font-family: "VipCate icons";
+	src: url("vipcate_icon.eot");
+	src: url("vipcate_icon.eot#iefix") format("embedded-opentype"),
+	url("vipcate_icon.woff") format("woff"),
+	url("vipcate_icon.ttf") format("truetype"),
+	url("vipcate_icon.svg") format("svg");
+	font-weight: normal;
+	font-style: normal;
+}
+[class^="vipicon-"]:before, [class*=" vipicon-"]:before,
+[class^="vipicon-"]:after, [class*=" vipicon-"]:after {   
+	font-family: "VipCate icons";
+	font-style: normal;
+	display:inline-block;
+	line-height:1;
+	vertical-align:middle;
+}
+.vipicon-airplane68:before {
+	content: "\e000";
+}
+.vipicon-boy31:before {
+	content: "\e001";
+}
+.vipicon-business148:before {
+	content: "\e002";
+}
+.vipicon-handshake1:before {
+	content: "\e003";
+}
+.vipicon-more7:before {
+	content: "\e004";
+}
+.vipicon-musical:before {
+	content: "\e005";
+}
+.vipicon-newspaper9:before {
+	content: "\e006";
+}
+.vipicon-party1:before {
+	content: "\e007";
+}
+.vipicon-portfolio3:before {
+	content: "\e008";
+}
+.vipicon-rankings:before {
+	content: "\e009";
+}
+.vipicon-restaurant2:before {
+	content: "\e00a";
+}
+.vipicon-shiny:before {
+	content: "\e00b";
+}
+.vipicon-smiley13:before {
+	content: "\e00c";
+}
+.vipicon-soccer44:before {
+	content: "\e00d";
+}
+.vipicon-spaghetti:before {
+	content: "\e00e";
+}
+.vipicon-students17:before {
+	content: "\e00f";
+}
+.vipicon-two28:before {
+	content: "\e010";
+}
+.vipicon-videogame:before {
+	content: "\e011";
+}

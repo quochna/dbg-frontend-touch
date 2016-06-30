@@ -1,0 +1,56 @@
+.talktv .zdbg_header{background:#00adee; border-bottom:1px solid #00adee; height:42px; padding:2px 0;position:inherit;}
+.talktv .zdbg_body{margin:10px 8px 10px; min-height:500px;}
+.talktv .zdbg_header .zdbg_logo{background: url(../images/logo.png); width:56px; height:40px; margin-top:2px;}
+.talktv .zdbg_footer{color:#6f5750;width:320px; margin:0 auto; text-align:left;}
+.zdbg_footer .fl{float:left;}
+.zdbg_footer .zdbg_logo{display:inline-block;margin:5px 5px 0 auto;width:72px;height:28px; background:url(../../../images/zingpaygate_logofooter.png) no-repeat;text-indent:-9999em; padding:5px 5px 0 0; border-right:1px solid #9b8063;}
+.talktv .zdbgbtn{background:#00adee;}
+.talktv .zdbgbtn:hover{background:#019ed9;}
+
+@media
+	only screen and (-webkit-min-device-pixel-ratio:1.3),
+	only screen and (min-device-pixel-ratio:1.3),
+	only screen and (min--moz-device-pixel-ratio:1.3),
+	only screen and (-moz-min-device-pixel-ratio:1.3),
+	only screen and (-o-min-device-pixel-ratio:1.3/1){
+		.talktv .zdbg_header .zdbg_logo{background-image:url(../images/logo.png); background-size:56px 40px;}
+	}
+
+@media
+	only screen and (-webkit-min-device-pixel-ratio:1.5),
+	only screen and (min-device-pixel-ratio:1.5),
+	only screen and (min--moz-device-pixel-ratio:1.5),
+	only screen and (-moz-min-device-pixel-ratio:1.5),
+	only screen and (-o-min-device-pixel-ratio:3/2){
+		.talktv .zdbg_header .zdbg_logo{background-image:url(../images/logo.png); background-size:56px 40px;}
+	}
+
+
+@media
+	only screen and (-webkit-min-device-pixel-ratio:1.75),
+	only screen and (min-device-pixel-ratio:1.75),
+	only screen and (min--moz-device-pixel-ratio:1.75),
+	only screen and (-moz-min-device-pixel-ratio:1.75),
+	only screen and (-o-min-device-pixel-ratio:1.75/1){
+		.talktv .zdbg_header .zdbg_logo{background-image:url(../images/logo@2x.png); background-size:56px 40px;}
+	}
+
+@media 
+	only screen and (-webkit-min-device-pixel-ratio:2),
+	only screen and (min-device-pixel-ratio:2),
+	only screen and (min--moz-device-pixel-ratio:2),
+	only screen and (-moz-min-device-pixel-ratio:2),
+	only screen and (-o-min-device-pixel-ratio:2/1){
+		.talktv .zdbg_header .zdbg_logo{background-image:url(../images/logo@2x.png); background-size:56px 40px;}
+		.zdbg_footer .zdbg_logo{ background-image: url(../../../images/zingpaygate_logofooter@2x.png); background-size:72px 28px;}
+	}
+	
+@media
+	only screen and (-webkit-min-device-pixel-ratio:3),
+	only screen and (min-device-pixel-ratio:3),
+	only screen and (min--moz-device-pixel-ratio:3),
+	only screen and (-moz-min-device-pixel-ratio:3),
+	only screen and (-o-min-device-pixel-ratio:3/1){
+		.talktv .zdbg_header .zdbg_logo{background-image: url(../images/logo@3x.png); background-size:56px 40px;}
+	}
+	

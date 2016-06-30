@@ -1,0 +1,90 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>{{PAYTITLE}}</title>
+        <meta http-equiv="description" content="" />
+        <meta http-equiv="keywords" content="" />
+        <meta property="og:title" content=""/>
+	<meta property="og:description" content=""/>
+	<meta property="og:image" content="" />
+        
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height"/>
+       <link href="{{STATIC_URL}}/Roboto_Font/roboto_font.css"  rel="stylesheet" type="text/css" />
+       <link href="{{STATIC_URL}}/css/zpaygate_style.css"  rel="stylesheet" type="text/css" />
+       
+        {{CUSTOM_CSS_LINK}}
+       
+        <script src="{{STATIC_URL}}/js/zmCore-1.26.min.js" type="text/javascript"  ></script>
+        <script src="{{STATIC_URL}}/js/zm.xcall-1.15.min.js" type="text/javascript"  ></script>
+        <script src="{{STATIC_URL}}/js/ndbg-1.02.min.js" type="text/javascript"  ></script>
+       
+    </head>
+
+    <body class="zdbg_wrapper  {{CUSTOM_CSS_DBG_WRAPPER}}">
+       
+        <div class="zdbg_pagesite">
+            
+             <div class="zdbg_header">
+                            
+		<h1 class="zdbg_logo zdbgsprt">Zing Cổng thanh toán</h1>
+            </div>
+            
+          
+            
+         <div class="zdbg_body">
+                
+                
+                
+        <div class="paymentcont">
+                  
+                <div class="payment_form">
+                   <p class="resulttext">Mã giao dịch <strong class="delivery_accname">{{transid}}</strong> <br/> 
+                       <strong class="moneynum">{{message}}</strong></p>
+                    <div class="fbtn">
+                         <div class="fbtn"><a href="javascript:;" onclick="closePayment();" class="zdbgbtn">Quay lại ứng dụng</a></div>   
+
+                    </div>
+
+                   <input type="hidden" name ="url_redirect" value="{{_n_url_redirect}}" />
+                   <input type="hidden" name="appid" value="{{appid}}"/>
+               </div>
+
+                <script type='text/javascript'>
+
+                              //test case cancel
+                                var _n_url_redirect = "{{_n_url_redirect}}";
+                                //predefine		
+                                var _n_state = "{{_n_state}}"; // billing or billed => o trang thanh cong => khi billed thanh cong / that bat ajax set lai _n_state 
+                                var _n_result = -1; //khi o state billed : result = 1: success, result < 1 : failed 
+                                var _n_error_code = "{{_n_error_code}}"; //khi billed failed thi truyen error_code va error_msg 
+                                var _n_error_msg = "{{_n_error_msg}}"; //khi billed failed thi truyen error_code va error_msg 
+                                var _n_tranxid = "{{_n_tranxid}}"; 
+                                var _n_apptranxid = "{{_n_apptranxid}}"; 
+                                var _n_netamount = "{{_n_netamount}}"; 
+                                var _n_platform = "{{_n_platform}}"; //lay tren query string platform : android, ios, wp, bb, lay tu querystring "pl"
+                                var _n_db = 0;
+
+                                var _n_pmc = "{{_n_pmc}}";
+                                var _n_grossamount = "{{_n_grossamount}}";
+                 </script>
+                   
+          
+            </div>
+         </div>
+       </div>          
+         <div class="zdbg_footer">
+           {{CUSTOM_CSS_DBG_FOOTER}}  
+           Copyright © Zing<br />Đơn vị chủ quản: <strong>CÔNG TY CỔ PHẦN VNG</strong>
+        </div>
+
+           
+    </body>
+ 
+</html>
+ 
+
+
+
+
+
