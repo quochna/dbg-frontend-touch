@@ -535,7 +535,7 @@ public class ChargeController extends DbgFrontendCore {
         dic.setVariable("chargeamtcalculated", "0");
         AppData _appdata = DecryptAppData(appID, request.getParameter("appdata"));
         if (_appdata != null) {
-            if (_appdata.flow == 2) {
+            if (_appdata.flow == 2) {//khong cho sua doi so tien
 
                 if (_appdata.chargeAmt > 0 && (_appdata.chargeAmt % DbgFrontEndConfig.ATMChargeAmtMod == 0)
                         && _appdata.chargeAmt >= DbgFrontEndConfig.MinAtmMoney
@@ -601,7 +601,7 @@ public class ChargeController extends DbgFrontendCore {
                     dic.setVariable("transid", request.getParameter("transid"));
                     SetValuesErrorForRedirectInformationNotify(request, dic, msg1);
                 }
-            } else //Flow = 1                            
+            } else //Flow = 1       , cho sua so tien                     
             {
                 dic.showSection("chargeatm");
                 dic.showSection("charge");

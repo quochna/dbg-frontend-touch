@@ -62,9 +62,9 @@ public class DbgFrontendCore extends HttpServlet {
     private DbgFrontendCore getController(String method) {
         switch (method) {
             case "chonkenhthanhtoan":
-                return SelectChannelController.getInstance();
+                return dbg.frontend.touch.edit.SelectChannelController.getInstance();
             case "thanhtoan":
-                return ChargeController.getInstance();
+                return dbg.frontend.touch.edit.ChargeController.getInstance();
             case "ketqua":
                 return ResultController.getInstance();
             case "async":

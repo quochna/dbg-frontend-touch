@@ -1,33 +1,33 @@
-    <form name="frmSelectChannel" id="frmSelectChannel" method="post" 
-          action="/{{actionpost}}">
-    
-        
-        {{>selectcardlayout}}
-        {{>selectatmlayout}}
-        
-        
-        
-             
-    <div class="fbtn">                
-               
-                
-              
-                <p class="btn01"><a href="javascript:;" onclick="closePayment();" class="zdbgbtn back">Hủy</a></p>
-                {{#XACNHAN_BTN_FORM}}
-                <p class="btn02"><a  class="zdbgbtn" href="javascript:;" onclick="submitForm();" >Xác nhận</a></p>
-                {{/XACNHAN_BTN_FORM}}
+<form name="frmSelectChannel" id="frmSelectChannel" method="post" 
+      action="/{{actionpost}}">
 
-                {{#XACNHAN_BTN}}
-                  <p class="btn02"> <a  class="zdbgbtn" href="javascript:;" onclick="document.getElementById('frmSelectChannel').submit();" >Xác nhận</a></p>
-                {{/XACNHAN_BTN}}
-                
+
+    {{>selectcardlayout}}
+    {{>selectatmlayout}}
+
+
+
+
+    <div class="fbtn">                
+
+
+
+        <p class="btn01"><a href="javascript:;" onclick="closePayment();" class="zdbgbtn back">Hủy</a></p>
+        {{#XACNHAN_BTN_FORM}}
+        <p class="btn02"><a  class="zdbgbtn" href="javascript:;" onclick="submitForm();" >Xác nhận</a></p>
+        {{/XACNHAN_BTN_FORM}}
+
+        {{#XACNHAN_BTN}}
+        <p class="btn02"> <a  class="zdbgbtn" href="javascript:;" onclick="document.getElementById('frmSelectChannel').submit();" >Xác nhận</a></p>
+        {{/XACNHAN_BTN}}
+
     </div>
-        
+
     {{#PMCGRP}}  
     <input type="hidden" name="pmcgrpid{{pmcgrpid}}" id="pmcgrpid{{pmcgrpid}}" 
            value="{{pmcids}}"/>
     {{/PMCGRP}}  
-        
+
     <input type="hidden" name="transid" value="{{transid}}"/>
     <input type="hidden" name="appid" value="{{appid}}"/>
     <input type="hidden" name="appdata" value="{{appdata}}"/>
@@ -36,93 +36,103 @@
     <input type="hidden" name ="appserverid" value="{{appserverid}}" />
     <input type="hidden" name ="pl" value="{{_n_platform}}" />
     <input type="hidden" name ="url_redirect" value="{{_n_url_redirect}}" />
-    
+
+    <input type="hidden" name="userid" value="{{userid}}">
+    <input type="hidden" name="platform" value="{{platform}}">
+    <input type="hidden" name="flow" value="{{flow}}">
+    <input type="hidden" name="itemid" value="{{itemid}}">   
+    <input type="hidden" name="itemname" value="{{itemname}}"> 
+    <input type="hidden" name="itemquantity" value="{{itemquantity}}">
+    <input type="hidden" name="chargeamt" value="{{chargeamt}}"> 
+    <input type="hidden" name="serverid" value="{{serverid}}" />
+    <input type="hidden" name="apptransid" value="{{apptransid}}" />
+    <input type="hidden" name="appTest" value="{{appTest}}"> 
     
     <input type="hidden" name ="isBack" id="isBack" value="0" />
     <input type="hidden" name ="_isdirect" id="_isdirect" value="{{_isdirect}}" />
-   
-    
-      <script type='text/javascript'>
-          
-              //test case cancel
-                var _n_url_redirect = "{{_n_url_redirect}}";
-                //predefine		
-                var _n_state = "{{_n_state}}"; // billing or billed => o trang thanh cong => khi billed thanh cong / that bat ajax set lai _n_state 
-                var _n_result = -1; //khi o state billed : result = 1: success, result < 1 : failed 
-                var _n_error_code = 0; //khi billed failed thi truyen error_code va error_msg 
-                var _n_error_msg = ""; //khi billed failed thi truyen error_code va error_msg 
-                var _n_tranxid = "{{_n_tranxid}}"; 
-                var _n_apptranxid = "{{_n_apptranxid}}"; 
-                var _n_netamount = "{{_n_netamount}}"; 
-                var _n_platform = "{{_n_platform}}"; //lay tren query string platform : android, ios, wp, bb, lay tu querystring "pl"
-                var _n_db = 0;    
-                
-                var _n_pmc = "{{_n_pmc}}";
-                var _n_grossamount = "{{_n_grossamount}}";
-                
-                function submitBack()
-                {
-                    
-                   var backObj =  document.getElementById("isBack");
-                   if(backObj!=null)
-                    {
-                        backObj.value="0";
-                            
-                    }
-                    document.getElementById('frmSelectChannel').action="/chonkenhthanhtoan";
-                    document.getElementById('frmSelectChannel').submit();
-                  
-                }
-               
-                function submitForm()
-                {                
-                   var radios = document.getElementsByName('pmcid');
-                   for (var i = 0; i < radios.length; i++) 
-                   {
-                        var button = radios[i];
-                        if (button.checked)
-                        {
-                            var pmcgrpid =  button.value;
-                            var hdfield = document.getElementById("pmcgrpid"+pmcgrpid);
-                            var array="";
-                            if(hdfield!=null)
-                            {
-                                var pmcids = hdfield.value; 
-                                array = pmcids.split(',');
-                            }
-                            if(array.length>1)
-                            {
-                               document.getElementById('frmSelectChannel').submit();
-                            }
-                            else
-                            {
-                               if(array.length == 1)
-                                    button.value = array[0];
-                                else
-                                    button.value = pmcgrpid;
-                                document.getElementById('frmSelectChannel').action="/thanhtoan";
-                                document.getElementById('frmSelectChannel').submit();
-                            }
-                            
-                            return;
-                        }
-                    }
-                    
-                    
-                  
-                }
-                document.addEventListener('DOMContentLoaded', function() 
-                {
-                    // DOM ready, run it!
-                     var radios = document.getElementsByName('pmcid');
-                     if(radios.length>0)
-                       {
-                          var button = radios[0]; 
-                          button.checked = true;
-                       }
-                }, true);
 
-                
-       </script>
-       
-   </form>
+
+    <script type='text/javascript'>
+
+        //test case cancel
+        var _n_url_redirect = "{{_n_url_redirect}}";
+        //predefine		
+        var _n_state = "{{_n_state}}"; // billing or billed => o trang thanh cong => khi billed thanh cong / that bat ajax set lai _n_state 
+        var _n_result = -1; //khi o state billed : result = 1: success, result < 1 : failed 
+        var _n_error_code = 0; //khi billed failed thi truyen error_code va error_msg 
+        var _n_error_msg = ""; //khi billed failed thi truyen error_code va error_msg 
+        var _n_tranxid = "{{_n_tranxid}}";
+        var _n_apptranxid = "{{_n_apptranxid}}";
+        var _n_netamount = "{{_n_netamount}}";
+        var _n_platform = "{{_n_platform}}"; //lay tren query string platform : android, ios, wp, bb, lay tu querystring "pl"
+        var _n_db = 0;
+
+        var _n_pmc = "{{_n_pmc}}";
+        var _n_grossamount = "{{_n_grossamount}}";
+
+        function submitBack()
+        {
+
+            var backObj = document.getElementById("isBack");
+            if (backObj != null)
+            {
+                backObj.value = "0";
+
+            }
+            document.getElementById('frmSelectChannel').action = "/chonkenhthanhtoan";
+            document.getElementById('frmSelectChannel').submit();
+
+        }
+
+        function submitForm()
+        {
+            var radios = document.getElementsByName('pmcid');
+            for (var i = 0; i < radios.length; i++)
+            {
+                var button = radios[i];
+                if (button.checked)
+                {
+                    var pmcgrpid = button.value;
+                    var hdfield = document.getElementById("pmcgrpid" + pmcgrpid);
+                    var array = "";
+                    if (hdfield != null)
+                    {
+                        var pmcids = hdfield.value;
+                        array = pmcids.split(',');
+                    }
+                    if (array.length > 1)
+                    {
+                        document.getElementById('frmSelectChannel').submit();
+                    }
+                    else
+                    {
+                        if (array.length == 1)
+                            button.value = array[0];
+                        else
+                            button.value = pmcgrpid;
+                        document.getElementById('frmSelectChannel').action = "/thanhtoan";
+                        document.getElementById('frmSelectChannel').submit();
+                    }
+
+                    return;
+                }
+            }
+
+
+
+        }
+        document.addEventListener('DOMContentLoaded', function ()
+        {
+            // DOM ready, run it!
+            var radios = document.getElementsByName('pmcid');
+            if (radios.length > 0)
+            {
+                var button = radios[0];
+                button.checked = true;
+            }
+        }, true);
+
+
+    </script>
+
+</form>
