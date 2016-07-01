@@ -20,6 +20,17 @@
     <input type="hidden" name ="appserverid" value="{{appserverid}}" />
     <input type="hidden" name ="pl" value="{{_n_platform}}" />
     
+    <input type="hidden" name="userid" value="{{userid}}">
+    <input type="hidden" name="platform" value="{{platform}}">
+    <input type="hidden" name="flow" value="{{flow}}">
+    <input type="hidden" name="itemid" value="{{itemid}}">   
+    <input type="hidden" name="itemname" value="{{itemname}}"> 
+    <input type="hidden" name="itemquantity" value="{{itemquantity}}">
+    <input type="hidden" name="chargeAmt" value="{{chargeAmt}}"> 
+    <input type="hidden" name="serverid" value="{{serverid}}" />
+    <input type="hidden" name="apptransid" value="{{apptransid}}" />
+    <input type="hidden" name="appTest" value="{{appTest}}"> 
+    
     <input type="hidden" name ="url_redirect" value="{{_n_url_redirect}}" />
     <input type="hidden" name ="isBack" id="isBack" value="0" />
     <input type="hidden" name ="_isdirect" id="_isdirect" value="{{_isdirect}}" />
