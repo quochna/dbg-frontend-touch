@@ -4,18 +4,21 @@
  */
 package dbg.frontend.touch.edit;
 
-import dbg.frontend.touch.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.vng.jcore.common.Config;
 import dbg.client.CreateRequestDataResult;
 import dbg.client.DbgClient;
-import dbg.client.DbgClientConfig;
 import dbg.frontend.config.DbgFrontEndConfig;
 import dbg.entity.ChargeInfo;
 import dbg.entity.MiniAppServerEntity;
 import dbg.enums.PMCIDEnum;
 import dbg.enums.TransStatusEnum;
+import dbg.frontend.touch.DbgFrontendCore;
+import dbg.frontend.touch.Monitor;
+import dbg.frontend.touch.SessionCard;
+import dbg.frontend.touch.SessionResultInfo;
+import dbg.frontend.touch.entity.LogEntity;
+import static dbg.frontend.touch.entity.LogEntity.getFullURL;
 import dbg.request.SubmitTransReq;
 import dbg.response.SubmitTransResp;
 import dbg.response.SubmitValidateTransResp;
@@ -36,6 +39,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
@@ -52,124 +56,75 @@ import org.apache.thrift.TException;
  *
  * @author hainpt
  */
-public class ResultController extends DbgFrontendCore
-{
+public class ResultController extends DbgFrontendCore {
 
     private static Logger logger = Logger.getLogger(ResultController.class);
     private final String ITEM_SEPARATE = "\\|";
     private final String PARAM_STATS = "stats";
     private final Monitor readStats = new Monitor();
     private static final ResultController instance = new ResultController();
-    public static ResultController getInstance()
-    {
+
+    public static ResultController getInstance() {
         return instance;
     }
 
- 
-
     @Override
-    public void handleRequest(HttpServletRequest request, HttpServletResponse response)
-    {
-        long startTime = System.nanoTime();
-        try
-        {
-            processRequest(request, response);
+    public void handleRequest(HttpServletRequest request, HttpServletResponse response) {
+        LogEntity logEntity = new LogEntity();
+        try {
+            logEntity.startTime = System.nanoTime();
+            logEntity.userAgent = request.getHeader("User-Agent");
+            logEntity.requestUrl = getFullURL(request);
             
-           
-        }
-        catch (Exception ex)
-        {
+            processRequest(logEntity, request, response);
+
+        } catch (Exception ex) {
             logger.error(ex.toString());
-            echoAndStats(startTime, renderExceptionErrorByTemplate(request), response);
+            logEntity.exception = ex.getMessage() + "|" + ExceptionUtils.getStackTrace(ex);
+            echoAndStats(logEntity, renderExceptionErrorByTemplate(request), response);
+        }
+        finally{
+            logger.info(logEntity.toJsonString());
         }
     }
 
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws TException, TemplateException, NoSuchAlgorithmException, UnsupportedEncodingException, IOException, Exception
-    {
+    protected void processRequest(LogEntity logEntity, HttpServletRequest request, HttpServletResponse response) throws TException, TemplateException, NoSuchAlgorithmException, UnsupportedEncodingException, IOException, Exception {
         long startTime = System.nanoTime();
         String stats = request.getParameter(PARAM_STATS);
 
-        if (stats != null && stats.equals(PARAM_STATS))
-        {
+        if (stats != null && stats.equals(PARAM_STATS)) {
             this.echo(this.readStats.dumpHtmlStats(), response);
             return;
         }
 
         // TODO : decode to check params
-        echoAndStats(startTime, renderByTemplate(request, response), response);
+        echoAndStats(logEntity, renderByTemplate(logEntity, request, response), response);
     }
 
-    private void echoAndStats(long startTime, String html, HttpServletResponse response)
-    {
+    private void echoAndStats(LogEntity logEntity, String html, HttpServletResponse response) {
+       logEntity.endTime = System.currentTimeMillis();
         this.echo(html, response);
-        this.readStats.addMicro((System.nanoTime() - startTime) / 1000);
     }
-    
-    protected CreateRequestDataResult  getTransID(HttpServletRequest request){
-        String transID = request.getParameter("transid");
-        String appTest = request.getParameter("appTest");
-        logger.info("appTest: " + appTest);
-        //dic.setVariable("appTest", appTest);
 
-        DbgClientConfig testDbgClientConfig = null;
-        if (appTest != null) {
-            try {
-                int appTestID = Integer.parseInt(appTest);
-                testDbgClientConfig = new DbgClientConfig();
-                testDbgClientConfig.appID = appTestID;
-                testDbgClientConfig.key1 = Config.getParam("appid=" + appTestID, "key1");
-                testDbgClientConfig.key2 = Config.getParam("appid=" + appTestID, "key2");
-                testDbgClientConfig.hashKey = Config.getParam("appid=" + appTestID, "hashkey");
-                testDbgClientConfig.apiBaseUrl = Config.getParam("dbgclient", "apiBaseUrl");
+    protected CreateRequestDataResult getTransID(HttpServletRequest request) {
 
-            } catch (Exception e) {
-                testDbgClientConfig = null;
-            }
-        }
+        DbgClient client = new DbgClient(DbgTestToolConfig.DBG_CLIENT_CONFIG);
 
-        DbgClient client;
-        if (testDbgClientConfig != null) {
-            client = new DbgClient(testDbgClientConfig);
-            
-            logger.info("Request transid: appID=" + testDbgClientConfig.appID);
-            logger.info("Request transid: key1=" + testDbgClientConfig.key1);
-            logger.info("Request transid: key2=" + testDbgClientConfig.key2);
-            logger.info("Request transid: hashKey=" + testDbgClientConfig.hashKey);
-            logger.info("Request transid: apiBaseUrl=" + testDbgClientConfig.apiBaseUrl);
-
-        } else {
-            DbgClientConfig test = DbgTestToolConfig.DBG_CLIENT_CONFIG;
-            client = new DbgClient(DbgTestToolConfig.DBG_CLIENT_CONFIG);
-        }
         CreateRequestDataResult r = client.createRequestData(request.getParameter("userid"),
                 Integer.parseInt(request.getParameter("platform")),
                 Integer.parseInt(request.getParameter("flow")),
                 request.getParameter("serverid"),
                 request.getParameter("itemid"),
-                 request.getParameter("itemname"),
+                request.getParameter("itemname"),
                 Long.parseLong(request.getParameter("itemquantity")),
-                Long.parseLong(request.getParameter("chargeAmt")), 
+                Long.parseLong(request.getParameter("chargeAmt")),
                 request.getParameter("apptransid"));
 
-      return r;
-
-        
-//        if ((transID == null) || transID.isEmpty()) {
-//            if (r.returnCode == 1) {
-//                dic.setVariable("transid", String.valueOf(r.transID));
-//            }
-//        } else {
-//            dic.setVariable("transid", transID);
-//        }
-
-        
-        
+        return r;
     }
 
-
-    private String renderByTemplate(HttpServletRequest request, HttpServletResponse response)
-            throws TemplateException, NoSuchAlgorithmException, UnsupportedEncodingException, IOException, Exception
-    {
+    private String renderByTemplate(LogEntity logEntity, HttpServletRequest request, HttpServletResponse response)
+            throws TemplateException, NoSuchAlgorithmException, UnsupportedEncodingException, IOException, Exception {
 
         TemplateLoader templateLoader = TemplateResourceLoader.create("view/");
         Template template = templateLoader.getTemplate("master");
@@ -183,246 +138,156 @@ public class ResultController extends DbgFrontendCore
         CreateRequestDataResult r = getTransID(request);
         SubmitTransReq req = new SubmitTransReq();
 
-//        req.transID = request.getParameter("transid");
-//        req.appID = request.getParameter("appid");
-//        req.appData = request.getParameter("appdata");
-        
-        req.transID = String.valueOf(r.transID);
-        req.appID = String.valueOf(r.appID);
-        req.appData = r.appData;
+        if (r.returnCode == 1) {
+            req.transID = String.valueOf(r.transID);
+            req.appID = String.valueOf(r.appID);
+            req.appData = r.appData;
+        }
 
         req.envID = String.valueOf(DbgFrontEndConfig.EnvID);
         req.feClientID = String.valueOf(DbgFrontEndConfig.WebFeClientID);
         req.clientIP = getClientIP(request);
 
         //Special case for ATM range id > 100
-        int pmcID = getPmcID(request);
+        int pmcID = getPmcID(logEntity, request);
         ChargeInfo cardInfo = new ChargeInfo();
         if (DbgFrontEndConfig.BankEntityMap.containsKey(pmcID)
-            || pmcID == PMCIDEnum.VISA_123PAY.getValue()
-            || pmcID == PMCIDEnum.MASTER_123PAY.getValue() 
-            || pmcID == PMCIDEnum.JCB_123PAY.getValue() )
-        {
-            
+                || pmcID == PMCIDEnum.VISA_123PAY.getValue()
+                || pmcID == PMCIDEnum.MASTER_123PAY.getValue()
+                || pmcID == PMCIDEnum.JCB_123PAY.getValue()) {
+
             //added charge Amt to addinfo for validations with flow = 2
             String chargeAMT = request.getParameter("chargeamt");
-            if(chargeAMT != null && !chargeAMT.trim().equals(""))
-            {
+            if (chargeAMT != null && !chargeAMT.trim().equals("")) {
                 req.addInfo = chargeAMT.replaceAll(",", "");
-            }            
+            }
             String amt = request.getParameter("chargeamtcalculated");
-            if (amt != null && !amt.trim().equals(""))
-            {
-                try
-                {
+            if (amt != null && !amt.trim().equals("")) {
+                try {
                     cardInfo.chargeAmount = new Long(amt.trim().replaceAll(",", ""));
-                }
-                catch (Exception ex)
-                {
+                } catch (Exception ex) {
                     cardInfo.chargeAmount = -1L;
+                    logEntity.exception = ex.getMessage() + "|" + ExceptionUtils.getStackTrace(ex);
                 }
             }
-            if( pmcID == PMCIDEnum.VISA_123PAY.getValue())             
-                
+            if (pmcID == PMCIDEnum.VISA_123PAY.getValue()) {
+                req.pmcID = String.valueOf(PMCIDEnum.VISA_123PAY.getValue());
+                cardInfo.bankCode = DbgFrontEndConfig.Visa_Master_BankCode_123PAY;
+
+            } else if (pmcID == PMCIDEnum.MASTER_123PAY.getValue()) {
+                req.pmcID = String.valueOf(PMCIDEnum.MASTER_123PAY.getValue());
+                cardInfo.bankCode = DbgFrontEndConfig.Visa_Master_BankCode_123PAY;
+            } else if (pmcID == PMCIDEnum.JCB_123PAY.getValue()) {
+                req.pmcID = String.valueOf(PMCIDEnum.JCB_123PAY.getValue());
+                cardInfo.bankCode = DbgFrontEndConfig.Visa_Master_BankCode_123PAY;
+            } else //Normal BANKS
             {
-               req.pmcID = String.valueOf(PMCIDEnum.VISA_123PAY.getValue()); 
-               cardInfo.bankCode = DbgFrontEndConfig.Visa_Master_BankCode_123PAY;
-               
-            }else if(pmcID == PMCIDEnum.MASTER_123PAY.getValue())
-            {
-               req.pmcID = String.valueOf(PMCIDEnum.MASTER_123PAY.getValue()); 
-               cardInfo.bankCode = DbgFrontEndConfig.Visa_Master_BankCode_123PAY;
-            }else if(pmcID == PMCIDEnum.JCB_123PAY.getValue())
-            {
-               req.pmcID = String.valueOf(PMCIDEnum.JCB_123PAY.getValue()); 
-               cardInfo.bankCode = DbgFrontEndConfig.Visa_Master_BankCode_123PAY; 
-            }            
-            else  //Normal BANKS
-            {
-               req.pmcID = String.valueOf(dbg.enums.PMCIDEnum.PAY123.getValue()); 
-               cardInfo.bankCode = DbgFrontEndConfig.BankEntityMap.get(pmcID).code;
+                req.pmcID = String.valueOf(dbg.enums.PMCIDEnum.PAY123.getValue());
+                cardInfo.bankCode = DbgFrontEndConfig.BankEntityMap.get(pmcID).code;
             }
-            
+
             cardInfo.cancelURL = DbgFrontEndConfig.Pay123CancelURL;
             cardInfo.redirectURL = DbgFrontEndConfig.Pay123RedirectURL;
             cardInfo.errorURL = DbgFrontEndConfig.Pay123ErrorURL;
 
-        }
-        else
-        {
+        } else {
             req.pmcID = request.getParameter("pmcid");
             cardInfo.cardSerial = request.getParameter("cardserial");
-            if (cardInfo.cardSerial != null)
-            {
+            if (cardInfo.cardSerial != null) {
                 cardInfo.cardSerial = cardInfo.cardSerial.toUpperCase();
                 //Added by BangDQ for fill cardserial when input wrong cardcode
-                SessionCard  entity = new SessionCard();
+                SessionCard entity = new SessionCard();
                 entity.pmcID = req.pmcID;
                 entity.CardSerial = cardInfo.cardSerial;
                 entity.transID = req.transID;
                 StoreCardSerial(request, entity);
             }
             cardInfo.cardPassword = request.getParameter("cardpassword");
-            if (cardInfo.cardPassword != null)
-            {
+            if (cardInfo.cardPassword != null) {
                 cardInfo.cardPassword = cardInfo.cardPassword.toUpperCase();
             }
-//            if (req.pmcID.equals("7"))//Zingxu
-//            {
-//                String amt = request.getParameter("zingxuamt");
-//                if (amt != null && !amt.trim().equals(""))
-//                {
-//                    try
-//                    {
-//                        cardInfo.chargeAmount = new Long(amt.trim().replaceAll(",", ""));
-//                    }
-//                    catch (Exception ex)
-//                    {
-//                        cardInfo.chargeAmount = -1L;
-//                    }
-//                }
-//                SSO3Account account = getSSO3Account(request);
-//                if (account != null)
-//                {
-//                    req.addInfo = account.userName + ";" + account.userId;
-//                }
-//
-//            }
-//            if (req.pmcID.equals("22"))//Thap Phong
-//            {
-//                String amt = request.getParameter("thapphongxuamt");
-//                if (amt != null && !amt.trim().equals(""))
-//                {
-//                    try
-//                    {
-//                        cardInfo.chargeAmount = new Long(amt.trim().replaceAll(",", ""));
-//                    }
-//                    catch (Exception ex)
-//                    {
-//                        cardInfo.chargeAmount = -1L;
-//                    }
-//                }
-//                SSO3Account account = getSSO3Account(request);
-//                if (account != null)
-//                {
-//                    req.addInfo = account.userName + ";" + account.userId;
-//                }
-//
-//            }
         }
 
         String json = cardInfo.toJsonString();
         boolean isException = false;
-        try
-        {
+        try {
             req.pmcData = new dbg.util.AES256Algorithm().encrypt(DbgFrontEndConfig.WebFeAesKey, json);
-            
-            
-            
-            
-        }
-        catch (Exception ex)
-        {
+
+        } catch (Exception ex) {
             isException = true;
             logger.error(ex.toString());
+            logEntity.exception = ex.getMessage() + "|" + ExceptionUtils.getStackTrace(ex);
         }
 
-        if (isException)
-        {
+        if (isException) {
             dic.showSection("notify");
             dic.setVariable("message", DbgFrontEndConfig.MaintainMsg);
-            dic.setVariable("transid", request.getParameter("transid"));            
-            SetValuesForRedirectInformationForNotify(request, dic, "0", DbgFrontEndConfig.MaintainMsg, req.transID);
-        }
-        else
-        {
+            dic.setVariable("transid", request.getParameter("transid"));
+            SetValuesForRedirectInformationForNotify(logEntity, request, dic, "0", DbgFrontEndConfig.MaintainMsg, req.transID);
+        } else {
             String data = String.format("%s%s%s%s%s%s%s%s", req.transID, req.appID, req.appData,
                     req.pmcID, req.envID, req.feClientID, req.pmcData,
                     DbgFrontEndConfig.WebFeHashKey);
-          
+
             req.sig = dbg.util.HashUtil.hashSHA256(data);
-            
-           
-            if (checkDuplicateTransID(request))
-            {
+
+            if (checkDuplicateTransID(request)) {
                 String resturnMSG = "Giao dịch này đã hết hạn.<br/> Vui lòng quay lại ứng dụng để thực hiện giao dịch khác!";
                 int errorCode = -19; //Duplicate TransactionID
                 dic.showSection("notify");
                 dic.setVariable("message", resturnMSG);
                 dic.setVariable("transid", request.getParameter("transid"));
-                SetValuesForRedirectInformationForNotify(request, dic, String.valueOf(errorCode), resturnMSG, req.transID);
-            }
-            else
-            {
-//                if(req.pmcID.equals("7") && 
-//                        cardInfo.chargeAmount < DbgFrontEndConfig.MinZingXu)
-//                {
-//                    String resturnMSG = "Số ZingXu phải lớn hơn hoặc bằng "+DbgFrontEndConfig.MinZingXu+".<br/> Vui lòng quay lại ứng dụng để thực hiện giao dịch khác!";
-//                    int errorCode = -66; //ZX_CHARGE_AMT_INVALID(-66)
-//                    dic.showSection("notify");
-//                    dic.setVariable("message", resturnMSG);
-//                    dic.setVariable("transid", request.getParameter("transid"));
-//                    SetValuesForRedirectInformationForNotify(request, dic, String.valueOf(errorCode), resturnMSG);
-//                }
-//                else                    
-//                {               
-                    //Save TransationID first
-                    SaveSessionTransID(request, req.transID);
-                    //Call Submit validation ATM 
-                    if (DbgFrontEndConfig.BankEntityMap.containsKey(pmcID)
-                        || pmcID == PMCIDEnum.VISA_123PAY.getValue() 
-                        || pmcID == PMCIDEnum.MASTER_123PAY.getValue() 
+                SetValuesForRedirectInformationForNotify(logEntity, request, dic, String.valueOf(errorCode), resturnMSG, req.transID);
+            } else {
+                //Save TransationID first
+                SaveSessionTransID(logEntity , request, req.transID);
+                //Call Submit validation ATM 
+                if (DbgFrontEndConfig.BankEntityMap.containsKey(pmcID)
+                        || pmcID == PMCIDEnum.VISA_123PAY.getValue()
+                        || pmcID == PMCIDEnum.MASTER_123PAY.getValue()
                         || pmcID == PMCIDEnum.JCB_123PAY.getValue()) //ATM case
+                {
+                    //Submit ATM transaction
+                    SubmitValidateTransResp resp = submitValidateATMTrans(req);
+                    if (resp.returnCode != TransStatusEnum.WAIT_FOR_CHARGE.getValue()) {
+                        dic.showSection("notify");
+                        dic.setVariable("message", resp.returnMessage);
+                        //                     dic.setVariable("transid", request.getParameter("transid"));
+                        dic.setVariable("transid", req.transID);
+                        SetValuesForRedirectInformationForNotify(logEntity, request, dic, String.valueOf(resp.returnCode), resp.returnMessage, req.transID);
+                    } else //Submit request to Pay123 URL                     
                     {
-                        //Submit ATM transaction
-                        SubmitValidateTransResp resp = submitValidateATMTrans(req);
-                        if (resp.returnCode != TransStatusEnum.WAIT_FOR_CHARGE.getValue())
-                        {
-                            dic.showSection("notify");
-                            dic.setVariable("message", resp.returnMessage);
-       //                     dic.setVariable("transid", request.getParameter("transid"));
-                             dic.setVariable("transid", req.transID);
-                            SetValuesForRedirectInformationForNotify(request, dic, String.valueOf(resp.returnCode), resp.returnMessage, req.transID);
-                        }
-                        else //Submit request to Pay123 URL                     
-                        {
-                            SaveSessionInfomation(request, req.transID);
-                            response.sendRedirect(resp.redirectURL);
-                        }
-
-                    }                    
-                    else //Normal Case
-                    {
-                        //Submit normal transaction 
-                        SubmitTransResp resp = submitTrans(req);
-                        if (resp.returnCode != TransStatusEnum.IN_VALIDATION_QUEUE.getValue()
-                                && resp.returnCode != TransStatusEnum.SUCCESSFUL.getValue())
-                        {
-                            dic.showSection("notify");
-                            dic.setVariable("message", resp.returnMessage);
-                            //dic.setVariable("transid", request.getParameter("transid"));
-                             dic.setVariable("transid", req.transID);
-                            SetValuesForRedirectInformationForNotify(request, dic, String.valueOf(resp.returnCode), resp.returnMessage, req.transID);
-                        }
-                        else
-                        {
-                            dic.showSection("asyncresult");
-                            dic.setVariable("ASYNC_RESULT_URL", DbgFrontEndConfig.AsyncResultUrl);
-                            dic.setVariable("transid", req.transID);
-                            int appID = Integer.parseInt(request.getParameter("appid"));
-                            if (DbgFrontEndConfig.AppEntityMap.get(appID) != null)
-                            {
-                                dic.setVariable("appName", DbgFrontEndConfig.AppEntityMap.get(appID).appDesc);
-                            }
-                            dic.setVariable("numberofcalling", String.valueOf(DbgFrontEndConfig.numberofcallingasync));
-                            dic.setVariable("intervalcallinginseconds", String.valueOf(DbgFrontEndConfig.intervalcallinginsecondsasync * 1000));
-                            SetValuesForRedirectInformation(request, dic, req.transID);
-
-                        }
+                        SaveSessionInfomation(request, req.transID);
+                        response.sendRedirect(resp.redirectURL);
                     }
-                
+
+                } else //Normal Case
+                {
+                    //Submit normal transaction 
+                    SubmitTransResp resp = submitTrans(req);
+                    if (resp.returnCode != TransStatusEnum.IN_VALIDATION_QUEUE.getValue()
+                            && resp.returnCode != TransStatusEnum.SUCCESSFUL.getValue()) {
+                        dic.showSection("notify");
+                        dic.setVariable("message", resp.returnMessage);
+                        //dic.setVariable("transid", request.getParameter("transid"));
+                        dic.setVariable("transid", req.transID);
+                        SetValuesForRedirectInformationForNotify(logEntity ,request, dic, String.valueOf(resp.returnCode), resp.returnMessage, req.transID);
+                    } else {
+                        dic.showSection("asyncresult");
+                        dic.setVariable("ASYNC_RESULT_URL", DbgFrontEndConfig.AsyncResultUrl);
+                        dic.setVariable("transid", req.transID);
+                        int appID = Integer.parseInt(request.getParameter("appid"));
+                        if (DbgFrontEndConfig.AppEntityMap.get(appID) != null) {
+                            dic.setVariable("appName", DbgFrontEndConfig.AppEntityMap.get(appID).appDesc);
+                        }
+                        dic.setVariable("numberofcalling", String.valueOf(DbgFrontEndConfig.numberofcallingasync));
+                        dic.setVariable("intervalcallinginseconds", String.valueOf(DbgFrontEndConfig.intervalcallinginsecondsasync * 1000));
+                        SetValuesForRedirectInformation(request, dic, req.transID);
+
+                    }
+                }
+
                /// }
-                
             }
         }
         //dic.setVariable("STATUS_BAR", GetStep3BarHTML());
@@ -431,12 +296,10 @@ public class ResultController extends DbgFrontendCore
 
          //added by BANGDQ for Special Layout 30/10/2014 13:20:10
         //SetSpecialLayOut(request, dic);
-        
         return template.renderToString(dic);
     }
 
-    public SubmitTransResp submitTrans(SubmitTransReq req) throws UnsupportedEncodingException, IOException
-    {
+    public SubmitTransResp submitTrans(SubmitTransReq req) throws UnsupportedEncodingException, IOException {
         SubmitTransResp resp = null;
 
         int timeout = DbgFrontEndConfig.CallApiTimeoutSeconds * 1000;
@@ -444,10 +307,9 @@ public class ResultController extends DbgFrontendCore
                 .setConnectTimeout(timeout)
                 .setConnectionRequestTimeout(timeout)
                 .setStaleConnectionCheckEnabled(true)
-                  .setSocketTimeout(timeout)
+                .setSocketTimeout(timeout)
                 .build();
-        try (CloseableHttpClient httpclient = HttpClients.custom().setDefaultRequestConfig(defaultRequestConfig).build())
-        {
+        try (CloseableHttpClient httpclient = HttpClients.custom().setDefaultRequestConfig(defaultRequestConfig).build()) {
 
             HttpPost httpPost = new HttpPost(DbgFrontEndConfig.SubmitTransUrl);
             List<NameValuePair> nvps = new ArrayList<>();
@@ -463,9 +325,7 @@ public class ResultController extends DbgFrontendCore
             nvps.add(new BasicNameValuePair("sig", req.sig));
             httpPost.setEntity(new UrlEncodedFormEntity(nvps, "UTF-8"));
 
-
-            try (CloseableHttpResponse response = httpclient.execute(httpPost))
-            {
+            try (CloseableHttpResponse response = httpclient.execute(httpPost)) {
                 HttpEntity entity = response.getEntity();
 
                 InputStream inputStream = entity.getContent();
@@ -483,18 +343,16 @@ public class ResultController extends DbgFrontendCore
     }
 
     public SubmitValidateTransResp submitValidateATMTrans(SubmitTransReq req)
-            throws UnsupportedEncodingException, IOException
-    {
+            throws UnsupportedEncodingException, IOException {
         SubmitValidateTransResp resp = null;
         int timeout = DbgFrontEndConfig.CallApiTimeoutSeconds * 1000;
         RequestConfig defaultRequestConfig = RequestConfig.custom()
                 .setConnectTimeout(timeout)
                 .setConnectionRequestTimeout(timeout)
                 .setStaleConnectionCheckEnabled(true)
-                  .setSocketTimeout(timeout)
+                .setSocketTimeout(timeout)
                 .build();
-        try (CloseableHttpClient httpclient = HttpClients.custom().setDefaultRequestConfig(defaultRequestConfig).build())
-        {
+        try (CloseableHttpClient httpclient = HttpClients.custom().setDefaultRequestConfig(defaultRequestConfig).build()) {
 
             HttpPost httpPost = new HttpPost(DbgFrontEndConfig.GetValidateATMUrl);
             List<NameValuePair> nvps = new ArrayList<>();
@@ -511,9 +369,7 @@ public class ResultController extends DbgFrontendCore
 
             httpPost.setEntity(new UrlEncodedFormEntity(nvps, "UTF-8"));
 
-
-            try (CloseableHttpResponse response = httpclient.execute(httpPost))
-            {
+            try (CloseableHttpResponse response = httpclient.execute(httpPost)) {
                 HttpEntity entity = response.getEntity();
 
                 InputStream inputStream = entity.getContent();
@@ -530,34 +386,24 @@ public class ResultController extends DbgFrontendCore
         return resp;
     }
 
-    
-
-    private void SetValuesForRedirectInformation(HttpServletRequest request, TemplateDataDictionary dic, String transid)
-    {
+    private void SetValuesForRedirectInformation(HttpServletRequest request, TemplateDataDictionary dic, String transid) {
 
         String strAppID = request.getParameter("appid");
         String strAppServerID = request.getParameter("appserverid");
         String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);
 
         String url = request.getParameter("url_redirect");
-        if (url != null && !url.trim().equals(""))
-        {
+        if (url != null && !url.trim().equals("")) {
             dic.setVariable("_n_url_redirect", url);
 
-        }
-        else
-        {
-            if (DbgFrontEndConfig.AppServerEntityMap.containsKey(key))
-            {
+        } else {
+            if (DbgFrontEndConfig.AppServerEntityMap.containsKey(key)) {
                 MiniAppServerEntity entity = DbgFrontEndConfig.AppServerEntityMap.get(key);
-                if (entity != null)
-                {
+                if (entity != null) {
                     dic.setVariable("_n_url_redirect", entity.appRedirectUrl);
 
                 }
-            }
-            else
-            {
+            } else {
                 dic.setVariable("_n_url_redirect", "");
 
             }
@@ -568,41 +414,30 @@ public class ResultController extends DbgFrontendCore
         dic.setVariable("_n_platform", request.getParameter("pl"));
         dic.setVariable("_n_netamount", "");
 
-
         dic.setVariable("_n_pmc", request.getParameter("pmcid"));
         dic.setVariable("_n_grossamount", "");
         dic.setVariable("appid", request.getParameter("appid"));
         dic.setVariable("pmcid", request.getParameter("pmcid"));
 
-
-
     }
 
-    private void SetValuesForRedirectInformationForNotify(HttpServletRequest request, TemplateDataDictionary dic, String errorCode, String errormsg, String transid)
-    {
+    private void SetValuesForRedirectInformationForNotify(LogEntity logEntity, HttpServletRequest request, TemplateDataDictionary dic, String errorCode, String errormsg, String transid) {
 
         String strAppID = request.getParameter("appid");
         String strAppServerID = request.getParameter("appserverid");
         String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);
         String url = request.getParameter("url_redirect");
-        if (url != null && !url.trim().equals(""))
-        {
+        if (url != null && !url.trim().equals("")) {
             dic.setVariable("_n_url_redirect", url);
 
-        }
-        else
-        {
-            if (DbgFrontEndConfig.AppServerEntityMap.containsKey(key))
-            {
+        } else {
+            if (DbgFrontEndConfig.AppServerEntityMap.containsKey(key)) {
                 MiniAppServerEntity entity = DbgFrontEndConfig.AppServerEntityMap.get(key);
-                if (entity != null)
-                {
+                if (entity != null) {
                     dic.setVariable("_n_url_redirect", entity.appRedirectUrl);
 
                 }
-            }
-            else
-            {
+            } else {
                 dic.setVariable("_n_url_redirect", "");
 
             }
@@ -616,38 +451,29 @@ public class ResultController extends DbgFrontendCore
         dic.setVariable("_n_error_msg", errormsg);
 
         String pmcid = request.getParameter("pmcid");
-        if (pmcid != null && !pmcid.trim().equals(""))
-        {
-            try
-            {
+        if (pmcid != null && !pmcid.trim().equals("")) {
+            try {
                 int n_pmcid = Integer.parseInt(pmcid);
-                if (n_pmcid > 100)
-                {
+                if (n_pmcid > 100) {
                     n_pmcid = dbg.enums.PMCIDEnum.PAY123.getValue();
                 }
                 dic.setVariable("_n_pmc", String.valueOf(n_pmcid));
                 dic.setVariable("pmcid", String.valueOf(n_pmcid));
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
+                logEntity.exception = ex.getMessage() + "|" + ExceptionUtils.getStackTrace(ex);
             }
 
-        }
-        else
-        {
+        } else {
             dic.setVariable("_n_pmc", request.getParameter("pmcid"));
             dic.setVariable("pmcid", request.getParameter("pmcid"));
         }
 
         dic.setVariable("_n_grossamount", "");
-        dic.setVariable("appid",request.getParameter("appid"));
-     
-
+        dic.setVariable("appid", request.getParameter("appid"));
 
     }
 
-    private void SaveSessionInfomation(HttpServletRequest request, String transid)
-    {
+    private void SaveSessionInfomation(HttpServletRequest request, String transid) {
         HttpSession session = request.getSession();
         SessionResultInfo ssResultInfo = new SessionResultInfo();
         String strAppID = request.getParameter("appid");
@@ -656,24 +482,17 @@ public class ResultController extends DbgFrontendCore
         ssResultInfo.appserverid = strAppServerID;
         String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);
         String url = request.getParameter("url_redirect");
-        if (url != null && !url.trim().equals("") &&!url.trim().equals("#"))
-        {
+        if (url != null && !url.trim().equals("") && !url.trim().equals("#")) {
             ssResultInfo.url_redirect = url;
 
-        }
-        else
-        {
-            if (DbgFrontEndConfig.AppServerEntityMap.containsKey(key))
-            {
+        } else {
+            if (DbgFrontEndConfig.AppServerEntityMap.containsKey(key)) {
                 MiniAppServerEntity entity = DbgFrontEndConfig.AppServerEntityMap.get(key);
-                if (entity != null)
-                {
+                if (entity != null) {
                     ssResultInfo.url_redirect = entity.appRedirectUrl;
 
                 }
-            }
-            else
-            {
+            } else {
                 ssResultInfo.url_redirect = "";
 
             }
@@ -687,7 +506,6 @@ public class ResultController extends DbgFrontendCore
 
         ssResultInfo.netamount = "";
 
-
         ssResultInfo.pmcid = request.getParameter("pmcid");
         ssResultInfo.grossamount = "";
 
@@ -697,44 +515,33 @@ public class ResultController extends DbgFrontendCore
 
     }
 
-    
-
-    private void SaveSessionTransID(HttpServletRequest request, String transID)
-    {
-        try
-        {
+    private void SaveSessionTransID(LogEntity logEntity, HttpServletRequest request, String transID) {
+        try {
             HttpSession session = request.getSession();
-           //String transID = request.getParameter("transid");
-            if (session != null)
-            {
+            //String transID = request.getParameter("transid");
+            if (session != null) {
                 session.setAttribute(DbgFrontEndConfig.TransIDsessionkey + "" + transID, transID);
                 session.setMaxInactiveInterval(DbgFrontEndConfig.SessionTimeoutSeconds);
             }
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             logger.error(ex.toString());
+            logEntity.exception = ex.getMessage() + "|" + ExceptionUtils.getStackTrace(ex);
         }
     }
 
-    private int getPmcID(HttpServletRequest request)
-    {
+    private int getPmcID(LogEntity logEntity, HttpServletRequest request) {
         int pmcID = -1;
         String strpmcid = request.getParameter("pmcid");
-        try
-        {
-            if (strpmcid != null && !strpmcid.equals(""))
-            {
+        try {
+            if (strpmcid != null && !strpmcid.equals("")) {
                 pmcID = Integer.parseInt(request.getParameter("pmcid"));
             }
 
-        }
-        catch (NumberFormatException ex)
-        {
+        } catch (NumberFormatException ex) {
             logger.error(ex.toString());
+            logEntity.exception = ex.getMessage() + "|" + ExceptionUtils.getStackTrace(ex);
         }
         return pmcID;
     }
 
-   
 }
