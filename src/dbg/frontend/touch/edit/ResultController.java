@@ -19,6 +19,7 @@ import dbg.frontend.touch.SessionCard;
 import dbg.frontend.touch.SessionResultInfo;
 import dbg.frontend.touch.entity.LogEntity;
 import static dbg.frontend.utils.common.getRequestUrl;
+import static dbg.frontend.utils.common.sendPost;
 import dbg.request.SubmitTransReq;
 import dbg.response.SubmitTransResp;
 import dbg.response.SubmitValidateTransResp;
@@ -30,7 +31,6 @@ import hapax.TemplateException;
 import hapax.TemplateLoader;
 import hapax.TemplateResourceLoader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -38,16 +38,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
@@ -75,15 +67,14 @@ public class ResultController extends DbgFrontendCore {
             logEntity.startTime = System.nanoTime();
             logEntity.userAgent = request.getHeader("User-Agent");
             logEntity.requestUrl = getRequestUrl(request);
-            
+
             processRequest(logEntity, request, response);
 
         } catch (Exception ex) {
             logger.error(ex.toString());
             logEntity.exception = ex.getMessage() + "|" + ExceptionUtils.getStackTrace(ex);
             echoAndStats(logEntity, renderExceptionErrorByTemplate(request), response);
-        }
-        finally{
+        } finally {
             logger.info(logEntity.toJsonString());
         }
     }
@@ -102,7 +93,7 @@ public class ResultController extends DbgFrontendCore {
     }
 
     private void echoAndStats(LogEntity logEntity, String html, HttpServletResponse response) {
-       logEntity.endTime = System.currentTimeMillis();
+        logEntity.endTime = System.currentTimeMillis();
         this.echo(html, response);
     }
 
@@ -240,7 +231,7 @@ public class ResultController extends DbgFrontendCore {
                 SetValuesForRedirectInformationForNotify(logEntity, request, dic, String.valueOf(errorCode), resturnMSG, req.transID);
             } else {
                 //Save TransationID first
-                SaveSessionTransID(logEntity , request, req.transID);
+                SaveSessionTransID(logEntity, request, req.transID);
                 //Call Submit validation ATM 
                 if (DbgFrontEndConfig.BankEntityMap.containsKey(pmcID)
                         || pmcID == PMCIDEnum.VISA_123PAY.getValue()
@@ -271,7 +262,7 @@ public class ResultController extends DbgFrontendCore {
                         dic.setVariable("message", resp.returnMessage);
                         //dic.setVariable("transid", request.getParameter("transid"));
                         dic.setVariable("transid", req.transID);
-                        SetValuesForRedirectInformationForNotify(logEntity ,request, dic, String.valueOf(resp.returnCode), resp.returnMessage, req.transID);
+                        SetValuesForRedirectInformationForNotify(logEntity, request, dic, String.valueOf(resp.returnCode), resp.returnMessage, req.transID);
                     } else {
                         dic.showSection("asyncresult");
                         dic.setVariable("ASYNC_RESULT_URL", DbgFrontEndConfig.AsyncResultUrl);
@@ -287,14 +278,14 @@ public class ResultController extends DbgFrontendCore {
                     }
                 }
 
-               /// }
+                /// }
             }
         }
         //dic.setVariable("STATUS_BAR", GetStep3BarHTML());
         dic.showSection("statusbar");
         dic.addSection("STEP3");
 
-         //added by BANGDQ for Special Layout 30/10/2014 13:20:10
+        //added by BANGDQ for Special Layout 30/10/2014 13:20:10
         //SetSpecialLayOut(request, dic);
         return template.renderToString(dic);
     }
@@ -303,40 +294,28 @@ public class ResultController extends DbgFrontendCore {
         SubmitTransResp resp = null;
 
         int timeout = DbgFrontEndConfig.CallApiTimeoutSeconds * 1000;
-        RequestConfig defaultRequestConfig = RequestConfig.custom()
-                .setConnectTimeout(timeout)
-                .setConnectionRequestTimeout(timeout)
-                .setStaleConnectionCheckEnabled(true)
-                .setSocketTimeout(timeout)
-                .build();
-        try (CloseableHttpClient httpclient = HttpClients.custom().setDefaultRequestConfig(defaultRequestConfig).build()) {
 
-            HttpPost httpPost = new HttpPost(DbgFrontEndConfig.SubmitTransUrl);
-            List<NameValuePair> nvps = new ArrayList<>();
-            nvps.add(new BasicNameValuePair("transid", req.transID));
-            nvps.add(new BasicNameValuePair("appid", req.appID));
-            nvps.add(new BasicNameValuePair("appdata", req.appData));
-            nvps.add(new BasicNameValuePair("pmcid", req.pmcID));
-            nvps.add(new BasicNameValuePair("envid", req.envID));
-            nvps.add(new BasicNameValuePair("feclientid", req.feClientID));
-            nvps.add(new BasicNameValuePair("pmcdata", req.pmcData));
-            nvps.add(new BasicNameValuePair("clientIP", req.clientIP));
-            nvps.add(new BasicNameValuePair("addInfo", req.addInfo));
-            nvps.add(new BasicNameValuePair("sig", req.sig));
-            httpPost.setEntity(new UrlEncodedFormEntity(nvps, "UTF-8"));
+        List<NameValuePair> nvps = new ArrayList<>();
+        nvps.add(new BasicNameValuePair("transid", req.transID));
+        nvps.add(new BasicNameValuePair("appid", req.appID));
+        nvps.add(new BasicNameValuePair("appdata", req.appData));
+        nvps.add(new BasicNameValuePair("pmcid", req.pmcID));
+        nvps.add(new BasicNameValuePair("envid", req.envID));
+        nvps.add(new BasicNameValuePair("feclientid", req.feClientID));
+        nvps.add(new BasicNameValuePair("pmcdata", req.pmcData));
+        nvps.add(new BasicNameValuePair("clientIP", req.clientIP));
+        nvps.add(new BasicNameValuePair("addInfo", req.addInfo));
+        nvps.add(new BasicNameValuePair("sig", req.sig));
 
-            try (CloseableHttpResponse response = httpclient.execute(httpPost)) {
-                HttpEntity entity = response.getEntity();
+        try {
+            String sResponse = sendPost(nvps, DbgFrontEndConfig.SubmitTransUrl, timeout);
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            gsonBuilder.setDateFormat(DbgFrontEndConfig.DateTimeFormatString);
+            Gson gson = gsonBuilder.create();
 
-                InputStream inputStream = entity.getContent();
-                String sResponse = IOUtils.toString(inputStream, "UTF-8");
+            resp = gson.fromJson(sResponse, SubmitTransResp.class);
 
-                GsonBuilder gsonBuilder = new GsonBuilder();
-                gsonBuilder.setDateFormat(DbgFrontEndConfig.DateTimeFormatString);
-                Gson gson = gsonBuilder.create();
-
-                resp = gson.fromJson(sResponse, SubmitTransResp.class);
-            }
+        } catch (Exception ex) {
         }
 
         return resp;
@@ -344,43 +323,33 @@ public class ResultController extends DbgFrontendCore {
 
     public SubmitValidateTransResp submitValidateATMTrans(SubmitTransReq req)
             throws UnsupportedEncodingException, IOException {
+
         SubmitValidateTransResp resp = null;
+
         int timeout = DbgFrontEndConfig.CallApiTimeoutSeconds * 1000;
-        RequestConfig defaultRequestConfig = RequestConfig.custom()
-                .setConnectTimeout(timeout)
-                .setConnectionRequestTimeout(timeout)
-                .setStaleConnectionCheckEnabled(true)
-                .setSocketTimeout(timeout)
-                .build();
-        try (CloseableHttpClient httpclient = HttpClients.custom().setDefaultRequestConfig(defaultRequestConfig).build()) {
 
-            HttpPost httpPost = new HttpPost(DbgFrontEndConfig.GetValidateATMUrl);
-            List<NameValuePair> nvps = new ArrayList<>();
-            nvps.add(new BasicNameValuePair("transid", req.transID));
-            nvps.add(new BasicNameValuePair("appid", req.appID));
-            nvps.add(new BasicNameValuePair("appdata", req.appData));
-            nvps.add(new BasicNameValuePair("pmcid", req.pmcID));
-            nvps.add(new BasicNameValuePair("envid", req.envID));
-            nvps.add(new BasicNameValuePair("feclientid", req.feClientID));
-            nvps.add(new BasicNameValuePair("pmcdata", req.pmcData));
-            nvps.add(new BasicNameValuePair("clientIP", req.clientIP));
-            nvps.add(new BasicNameValuePair("addInfo", req.addInfo));
-            nvps.add(new BasicNameValuePair("sig", req.sig));
+        List<NameValuePair> nvps = new ArrayList<>();
+        nvps.add(new BasicNameValuePair("transid", req.transID));
+        nvps.add(new BasicNameValuePair("appid", req.appID));
+        nvps.add(new BasicNameValuePair("appdata", req.appData));
+        nvps.add(new BasicNameValuePair("pmcid", req.pmcID));
+        nvps.add(new BasicNameValuePair("envid", req.envID));
+        nvps.add(new BasicNameValuePair("feclientid", req.feClientID));
+        nvps.add(new BasicNameValuePair("pmcdata", req.pmcData));
+        nvps.add(new BasicNameValuePair("clientIP", req.clientIP));
+        nvps.add(new BasicNameValuePair("addInfo", req.addInfo));
+        nvps.add(new BasicNameValuePair("sig", req.sig));
 
-            httpPost.setEntity(new UrlEncodedFormEntity(nvps, "UTF-8"));
+        try {
 
-            try (CloseableHttpResponse response = httpclient.execute(httpPost)) {
-                HttpEntity entity = response.getEntity();
+            String sResponse = sendPost(nvps, DbgFrontEndConfig.GetValidateATMUrl, timeout);
 
-                InputStream inputStream = entity.getContent();
-                String sResponse = IOUtils.toString(inputStream, "UTF-8");
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            gsonBuilder.setDateFormat(DbgFrontEndConfig.DateTimeFormatString);
+            Gson gson = gsonBuilder.create();
 
-                GsonBuilder gsonBuilder = new GsonBuilder();
-                gsonBuilder.setDateFormat(DbgFrontEndConfig.DateTimeFormatString);
-                Gson gson = gsonBuilder.create();
-
-                resp = gson.fromJson(sResponse, SubmitValidateTransResp.class);
-            }
+            resp = gson.fromJson(sResponse, SubmitValidateTransResp.class);
+        } catch (Exception ex) {
         }
 
         return resp;
