@@ -5,8 +5,6 @@
  */
 package dbg.frontend.touch.entity;
 
-import javax.servlet.http.HttpServletRequest;
-
 /**
  *
  * @author cpu10859
@@ -20,14 +18,5 @@ public class LogEntity extends BaseEntity{
     
     
     
-    public static String getFullURL(HttpServletRequest request) {
-        StringBuffer requestURL = request.getRequestURL();
-        String queryString = request.getQueryString();
-
-        if (queryString == null) {
-            return requestURL.toString();
-        } else {
-            return requestURL.append('?').append(queryString).toString();
-        }
-    }
+    
 }

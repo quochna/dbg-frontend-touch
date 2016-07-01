@@ -18,7 +18,7 @@ import dbg.frontend.touch.Monitor;
 import dbg.frontend.touch.SessionCard;
 import dbg.frontend.touch.SessionResultInfo;
 import dbg.frontend.touch.entity.LogEntity;
-import static dbg.frontend.touch.entity.LogEntity.getFullURL;
+import static dbg.frontend.utils.common.getRequestUrl;
 import dbg.request.SubmitTransReq;
 import dbg.response.SubmitTransResp;
 import dbg.response.SubmitValidateTransResp;
@@ -74,7 +74,7 @@ public class ResultController extends DbgFrontendCore {
         try {
             logEntity.startTime = System.nanoTime();
             logEntity.userAgent = request.getHeader("User-Agent");
-            logEntity.requestUrl = getFullURL(request);
+            logEntity.requestUrl = getRequestUrl(request);
             
             processRequest(logEntity, request, response);
 

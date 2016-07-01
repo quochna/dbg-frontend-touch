@@ -12,7 +12,7 @@ import dbg.entity.PmcEntity;
 import dbg.enums.PMCIDEnum;
 import dbg.frontend.config.DbgFrontEndConfig;
 import dbg.frontend.touch.entity.LogEntity;
-import static dbg.frontend.touch.entity.LogEntity.getFullURL;
+import static dbg.frontend.utils.common.getRequestUrl;
 import hapax.Template;
 import hapax.TemplateDataDictionary;
 import hapax.TemplateDictionary;
@@ -52,7 +52,7 @@ public class ChargeController extends DbgFrontendCore {
         try {
             logEntity.startTime = System.nanoTime();
             logEntity.userAgent = request.getHeader("User-Agent");
-            logEntity.requestUrl = getFullURL(request);
+            logEntity.requestUrl = getRequestUrl(request);
 
             int pmcID = -1;
             String strpmcid = request.getParameter("pmcid");

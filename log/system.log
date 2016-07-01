@@ -1205,3 +1205,8 @@
 	<meta property="og:description" content=""/>
 	<meta pr
  INFO [qtp872261387-67] 2016-07-01 14:57:25,179 ResultController.java (line 87) {"startTime":24305980764431,"endTime":1467359845177,"requestUrl":"http://localhost:8003/ketqua","exception":"","userAgent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/50.0.2661.102 Chrome/50.0.2661.102 Safari/537.36"}
+ INFO [Thread-2] 2016-07-01 14:58:29,197 Server.java (line 303) Graceful shutdown SelectChannelConnector@0.0.0.0:8003
+ INFO [Thread-2] 2016-07-01 14:58:29,198 Server.java (line 312) Graceful shutdown o.e.j.s.ServletContextHandler{/,null}
+ INFO [Thread-3] 2016-07-01 14:58:29,200 ShutdownThread.java (line 28) Waiting for shut down!
+ INFO [Thread-2] 2016-07-01 14:58:30,231 ContextHandler.java (line 822) stopped o.e.j.s.ServletContextHandler{/,null}
+ INFO [Thread-3] 2016-07-01 14:58:30,289 ShutdownThread.java (line 39) Server shutted down!
