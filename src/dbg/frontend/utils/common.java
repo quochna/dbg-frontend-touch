@@ -28,7 +28,7 @@ import org.apache.http.impl.client.HttpClients;
 public class common {
 
     public static String getRequestUrl(HttpServletRequest request) {
-        StringBuilder stringBuilder = new StringBuilder(request.getRequestURI());
+        StringBuilder stringBuilder = new StringBuilder(request.getRequestURL());
         Enumeration enu = request.getParameterNames();
         stringBuilder.append("?");
         while (enu.hasMoreElements()) {
