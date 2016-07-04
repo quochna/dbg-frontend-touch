@@ -1,6 +1,7 @@
 var _n_px = "udbg://";
 
 function urldecode(str) {
+    //chuyen ve uri goc
     return decodeURIComponent((str + '').replace(/\+/g, '%20'))
 }
 
@@ -13,8 +14,12 @@ function callbackWhenBacked() {
 }
 
 function callbackPaymentHelper(state, result, tranxid, apptranxid, netamount, channel, grossamount) {
+    // billing: giai doan dang tao bill
+    // billed: giai doan tao xong bill
+    // billing : chargeController, billed: tu buoc resultController -> pay123
     if (state == "billed") 
     {
+        // result < 0 -> failed, result = 1 -> successfull,  result > 1 : waitting
         if (result <= 0) 
 	{
             var _url = "";

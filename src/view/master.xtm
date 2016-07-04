@@ -44,8 +44,7 @@
                     {{>charge}}
                     {{>notify}}
                     {{>asyncresult}}          
-                    {{>loginzingme}}
-                    {{>thapphongnotify}}
+                   
           
             </div>
          </div>

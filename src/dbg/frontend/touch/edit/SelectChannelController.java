@@ -23,12 +23,14 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
+import org.eclipse.jetty.server.handler.ContextHandler;
 
 /**
  *
@@ -55,7 +57,7 @@ public class SelectChannelController extends DbgFrontendCore {
             logEntity.startTime = System.nanoTime();
             logEntity.userAgent = request.getHeader("User-Agent");
             logEntity.requestUrl = getRequestUrl(request);
-            
+
             Integer pmcID = -1;
             String pmcIDStr = request.getParameter("pmcid");
             String StrisBack = request.getParameter("isBack");
@@ -79,6 +81,22 @@ public class SelectChannelController extends DbgFrontendCore {
 
                         echoAndStats(logEntity, renderPMCByTemplate(request, dbg.enums.PMCIDGroupEnum.PAY123.getValue()), response);
 
+                    } else {
+                        //Change for zalo to get info of wphone         
+                        String _n_platform = request.getParameter("pl");
+                        if (_n_platform != null && !_n_platform.isEmpty()) {
+                            if (_n_platform.equalsIgnoreCase("wphone")
+                                    || _n_platform.equalsIgnoreCase("wp")) {
+                                _n_platform = "wp";
+                            }
+                        }
+                        RequestDispatcher rd = ContextHandler.getCurrentContext().getRequestDispatcher("/thanhtoan?" + "pl=" + _n_platform);
+                        if (rd != null) {
+
+                            rd.forward(request, response);
+                        } else {
+                            processRequest(logEntity, request, response);
+                        }
                     }
 
                 } else {
@@ -147,8 +165,6 @@ public class SelectChannelController extends DbgFrontendCore {
         }
 
     }
-
-    
 
     private void echoAndStats(LogEntity logEntity, String html, HttpServletResponse response) {
         logEntity.endTime = System.currentTimeMillis();
