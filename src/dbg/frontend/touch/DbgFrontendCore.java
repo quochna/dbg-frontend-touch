@@ -68,9 +68,9 @@ public class DbgFrontendCore extends HttpServlet {
             case "ketqua":
                 return dbg.frontend.touch.edit.ResultController.getInstance();
             case "async":
-                return AsyncResultController.getInstance();
+                return dbg.frontend.touch.edit.AsyncResultController.getInstance();
             case "pay123result":
-                return Pay123ResultController.getInstance();
+                return dbg.frontend.touch.edit.Pay123ResultController.getInstance();
             default:
                 return null;
         }
