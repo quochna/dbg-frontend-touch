@@ -4,9 +4,12 @@
  */
 package dbg.frontend.touch;
 
+import dbg.frontend.touch.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dbg.frontend.config.DbgFrontEndConfig;
+import dbg.frontend.touch.entity.LogEntity;
+import static dbg.frontend.utils.common.getRequestUrl;
 import dbg.response.TransStatusResp;
 import hapax.Template;
 import hapax.TemplateDataDictionary;
@@ -27,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
@@ -62,20 +66,24 @@ public class Pay123ResultController extends DbgFrontendCore
     @Override
     public void handleRequest(HttpServletRequest request, HttpServletResponse response)
     {
-        long startTime = System.nanoTime();
+        LogEntity logEntity = new LogEntity();
         try
         {
-            processRequest(request, response);
+            logEntity.startTime = System.nanoTime();
+            logEntity.userAgent = request.getHeader("User-Agent");
+            logEntity.requestUrl = getRequestUrl(request);
+            processRequest(logEntity, request, response);
             
         }
         catch (Exception ex)
         {
+            logEntity.exception = ex.getMessage() + "|" + ExceptionUtils.getStackTrace(ex);
             logger.error(ex.toString());
-             echoAndStats(startTime, render123PayExceptionErrorByTemplate(request), response);
+             echoAndStats(logEntity, render123PayExceptionErrorByTemplate( logEntity, request), response);
         }
     }
 
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws TException, TemplateException, NoSuchAlgorithmException, UnsupportedEncodingException, IOException
+    protected void processRequest(LogEntity logEntity, HttpServletRequest request, HttpServletResponse response) throws TException, TemplateException, NoSuchAlgorithmException, UnsupportedEncodingException, IOException
     {
         long startTime = System.nanoTime();
         String stats = request.getParameter(PARAM_STATS);
@@ -87,16 +95,16 @@ public class Pay123ResultController extends DbgFrontendCore
         }
 
         // TODO : decode to check params
-        echoAndStats(startTime, renderByTemplate(request, response), response);
+        echoAndStats(logEntity, renderByTemplate(logEntity, request, response), response);
     }
 
-    private void echoAndStats(long startTime, String html, HttpServletResponse response)
+    private void echoAndStats(LogEntity logEntity, String html, HttpServletResponse response)
     {
         this.echo(html, response);
-        this.readStats.addMicro((System.nanoTime() - startTime) / 1000);
+       logEntity.endTime = System.currentTimeMillis();
     }
 
-    private String renderByTemplate(HttpServletRequest request, HttpServletResponse response)
+    private String renderByTemplate(LogEntity logEntity, HttpServletRequest request, HttpServletResponse response)
             throws TemplateException, NoSuchAlgorithmException, UnsupportedEncodingException, IOException
     {
 
@@ -107,7 +115,7 @@ public class Pay123ResultController extends DbgFrontendCore
         dic.setVariable("PAYTITLE", DbgFrontEndConfig.MasterFormTitle);
         dic.setVariable("PAYURL", DbgFrontEndConfig.SystemUrl);
         dic.setVariable("STATIC_URL", DbgFrontEndConfig.StaticContentUrl);
-        dic.setVariable("SYSTEM_CREDITS_URL", DbgFrontEndConfig.SystemCreditsUrl);
+//        dic.setVariable("SYSTEM_CREDITS_URL", DbgFrontEndConfig.SystemCreditsUrl);
 
         dic.showSection("asyncresult");
         dic.setVariable("ASYNC_RESULT_URL", DbgFrontEndConfig.AsyncResultUrl);
@@ -126,7 +134,7 @@ public class Pay123ResultController extends DbgFrontendCore
         String status = request.getParameter("status");
         if (status != null)
         {
-            queryATMTransStatus(request.getParameter("transactionID"));
+            queryATMTransStatus(logEntity, request.getParameter("transactionID"));
         }
       
         
@@ -171,7 +179,7 @@ public class Pay123ResultController extends DbgFrontendCore
 
 
     }
-     public String render123PayExceptionErrorByTemplate(HttpServletRequest request) 
+     public String render123PayExceptionErrorByTemplate(LogEntity logEntity, HttpServletRequest request) 
     {
         try{
 
@@ -181,7 +189,7 @@ public class Pay123ResultController extends DbgFrontendCore
         dic.setVariable("PAYTITLE", DbgFrontEndConfig.MasterFormTitle);
         dic.setVariable("PAYURL", DbgFrontEndConfig.SystemUrl);
         dic.setVariable("STATIC_URL", DbgFrontEndConfig.StaticContentUrl);
-        dic.setVariable("SYSTEM_CREDITS_URL", DbgFrontEndConfig.SystemCreditsUrl);
+//        dic.setVariable("SYSTEM_CREDITS_URL", DbgFrontEndConfig.SystemCreditsUrl);
        
         dic.setVariable("message", DbgFrontEndConfig.Exception);
          
@@ -222,7 +230,8 @@ public class Pay123ResultController extends DbgFrontendCore
       
         return template.renderToString(dic);
         }catch ( Exception ex)
-        {   
+        {
+            logEntity.exception = ex.getMessage() + "|" + ExceptionUtils.getStackTrace(ex);
             logger.error(ex.getMessage());
             return DbgFrontEndConfig.Exception;
         }
@@ -231,7 +240,7 @@ public class Pay123ResultController extends DbgFrontendCore
 
    
 
-    public TransStatusResp queryATMTransStatus(String transID) throws UnsupportedEncodingException, IOException
+    public TransStatusResp queryATMTransStatus(LogEntity logEntity, String transID) throws UnsupportedEncodingException, IOException
     {
 
         TransStatusResp resp = null;
@@ -263,6 +272,7 @@ public class Pay123ResultController extends DbgFrontendCore
             }
             catch (Exception ex)
             {
+                logEntity.exception = ex.getMessage() + "|" + ExceptionUtils.getStackTrace(ex);
                 logger.error(ex.toString());
             }
 

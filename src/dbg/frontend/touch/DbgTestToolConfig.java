@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package dbg.frontend.touch.edit;
+package dbg.frontend.touch;
 
 import org.apache.log4j.Logger;
 import com.vng.jcore.common.Config;
@@ -28,7 +28,7 @@ public class DbgTestToolConfig {
     public static String STATIC_CONTENT_URL;
     public static String SYSTEM_CREDITS_URL;
     public static String MAINTAIN_MSG;
-    public static String SubmitTransUrl;
+//    public static String SubmitTransUrl;
     public static String SubmittransThanhtoanurl;
     public static String TransHistoryUrl;
     public static DbgClientConfig DBG_CLIENT_CONFIG;
@@ -67,7 +67,7 @@ public class DbgTestToolConfig {
             DBG_CLIENT_CONFIG.hashKey = Config.getParam("dbgclient", "hashkey");
             DBG_CLIENT_CONFIG.apiBaseUrl = Config.getParam("dbgclient", "apiBaseUrl");
 
-            SubmitTransUrl = Config.getParam("dbgclient", "submittransurl");
+//            SubmitTransUrl = Config.getParam("dbgclient", "submittransurl");
             TransHistoryUrl = Config.getParam("dbgclient", "transHistoryUrl");
             gettransstatus = Config.getParam("dbgclient", "gettransstatus");
 

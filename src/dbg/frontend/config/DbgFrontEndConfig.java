@@ -64,7 +64,7 @@ public class DbgFrontEndConfig
     public static String MasterFormTitle;
     public static String SystemUrl;
     public static String StaticContentUrl;
-    public static String SystemCreditsUrl;
+//    public static String SystemCreditsUrl;
     public static String MaintainMsg;
     public static int WebFeClientID;
     public static String WebFeHashKey;
@@ -186,8 +186,8 @@ public class DbgFrontEndConfig
             MasterFormTitle = Config.getParam("system", "master-form-title");
             StaticContentUrl = Config.getParam("system", "static-content-url");
             MaintainMsg = Config.getParam("system", "maintain-msg");
-            SystemCreditsUrl = Config.getParam("system", "credits-url");
-            AsyncResultUrl = Config.getParam("system", "AsyncResultUrl");
+//            SystemCreditsUrl = Config.getParam("system", "credits-url");
+            AsyncResultUrl = SystemUrl + Config.getParam("system", "AsyncResultUrl");
 
             WebFeClientID = Integer.parseInt(Config.getParam("frontend", "webfeclientid"));
             WebFeHashKey = Config.getParam("frontend", "webfehashkey");
@@ -247,11 +247,11 @@ public class DbgFrontEndConfig
             //End Load DBG API URL
 
             //Load 123 Pay Redirect URL
-            Pay123CancelURL = Config.getParam("123payatm", "cancelurl");
+            Pay123CancelURL = SystemUrl + Config.getParam("123payatm", "cancelurl");
             logger.info(String.format("Pay123CancelURL: %s", Pay123CancelURL));
-            Pay123ErrorURL = Config.getParam("123payatm", "errorurl");
+            Pay123ErrorURL = SystemUrl + Config.getParam("123payatm", "errorurl");
             logger.info(String.format("Pay123ErrorURL: %s", Pay123ErrorURL));
-            Pay123RedirectURL = Config.getParam("123payatm", "redirecturl");
+            Pay123RedirectURL = SystemUrl + Config.getParam("123payatm", "redirecturl");
             logger.info(String.format("Pay123RedirectURL: %s", Pay123RedirectURL));
             
             

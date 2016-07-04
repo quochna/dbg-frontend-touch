@@ -62,15 +62,15 @@ public class DbgFrontendCore extends HttpServlet {
     private DbgFrontendCore getController(String method) {
         switch (method) {
             case "chonkenhthanhtoan":
-                return dbg.frontend.touch.edit.SelectChannelController.getInstance();
+                return dbg.frontend.touch.SelectChannelController.getInstance();
             case "thanhtoan":
-                return dbg.frontend.touch.edit.ChargeController.getInstance();
+                return dbg.frontend.touch.ChargeController.getInstance();
             case "ketqua":
-                return dbg.frontend.touch.edit.ResultController.getInstance();
+                return dbg.frontend.touch.ResultController.getInstance();
             case "async":
-                return dbg.frontend.touch.edit.AsyncResultController.getInstance();
+                return dbg.frontend.touch.AsyncResultController.getInstance();
             case "pay123result":
-                return dbg.frontend.touch.edit.Pay123ResultController.getInstance();
+                return dbg.frontend.touch.Pay123ResultController.getInstance();
             default:
                 return null;
         }
@@ -303,7 +303,7 @@ public class DbgFrontendCore extends HttpServlet {
             dic.setVariable("PAYTITLE", DbgFrontEndConfig.MasterFormTitle);
             dic.setVariable("PAYURL", DbgFrontEndConfig.SystemUrl);
             dic.setVariable("STATIC_URL", DbgFrontEndConfig.StaticContentUrl);
-            dic.setVariable("SYSTEM_CREDITS_URL", DbgFrontEndConfig.SystemCreditsUrl);
+//            dic.setVariable("SYSTEM_CREDITS_URL", DbgFrontEndConfig.SystemCreditsUrl);
             dic.setVariable("apptransid", request.getParameter("apptransid"));
             dic.setVariable("message", DbgFrontEndConfig.Exception);
             dic.setVariable("transid", request.getParameter("transid"));

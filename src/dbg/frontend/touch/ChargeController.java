@@ -4,12 +4,15 @@
  */
 package dbg.frontend.touch;
 
+import dbg.frontend.touch.*;
 import dbg.entity.AppData;
 import dbg.entity.MiniAppServerEntity;
 import dbg.entity.PaymentHidenInfo;
 import dbg.entity.PmcEntity;
 import dbg.enums.PMCIDEnum;
 import dbg.frontend.config.DbgFrontEndConfig;
+import dbg.frontend.touch.entity.LogEntity;
+import static dbg.frontend.utils.common.getRequestUrl;
 import hapax.Template;
 import hapax.TemplateDataDictionary;
 import hapax.TemplateDictionary;
@@ -44,8 +47,12 @@ public class ChargeController extends DbgFrontendCore {
 
     @Override
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) {
-        long startTime = System.nanoTime();
+        
+        LogEntity logEntity = new LogEntity();
         try {
+            logEntity.startTime = System.nanoTime();
+            logEntity.userAgent = request.getHeader("User-Agent");
+            logEntity.requestUrl = getRequestUrl(request);
 
             int pmcID = -1;
             String strpmcid = request.getParameter("pmcid");
@@ -55,19 +62,21 @@ public class ChargeController extends DbgFrontendCore {
                 }
 
             } catch (NumberFormatException ex) {
+                logEntity.exception = ex.getMessage() + "|" + ExceptionUtils.getStackTrace(ex);
+                
             }
             Map<Integer, PmcEntity> PmcEntityMap = DbgFrontEndConfig.GetPmcSupportByAppID(request.getParameter("appid"));
             PmcEntity pmcEntity = PmcEntityMap.get(pmcID);
             //if (DbgFrontEndConfig.PmcEntityMap.containsKey(pmcID))
             if (pmcEntity != null) {
-                processRequest(request, response);
+                processRequest(logEntity, request, response);
             } else {   //if it is bank channel
                 if (DbgFrontEndConfig.BankEntityMap.containsKey(pmcID)) {
-                    processRequest(request, response);
+                    processRequest(logEntity, request, response);
                 } else {
 
                     String msg2 = "Kênh thanh toán này chưa được hỗ trợ, vui lòng quay lại sau!";
-                    echoAndStats(startTime, renderPreCheckDataErrorByTemplate(request, msg2, "0"), response);
+                    echoAndStats(logEntity, renderPreCheckDataErrorByTemplate(request, msg2, "0"), response);
                 }
             }
 
@@ -75,14 +84,18 @@ public class ChargeController extends DbgFrontendCore {
             logger.error(ex.toString());
             logger.error("ChargeController error RootCause: " + ExceptionUtils.getRootCauseMessage(ex));
             logger.error("ChargeController error StackTrace: " + ExceptionUtils.getStackTrace(ex));
-            echoAndStats(startTime, renderExceptionErrorByTemplate(request), response);
+            logEntity.exception = ex.getMessage() + "|" + ExceptionUtils.getStackTrace(ex);
+            echoAndStats(logEntity, renderExceptionErrorByTemplate(request), response);
 
+        }
+        finally{
+            logger.info(logEntity.toJsonString());
         }
     }
 
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+    protected void processRequest(LogEntity logEntity, HttpServletRequest request, HttpServletResponse response)
             throws TException, TemplateException, ServletException, IOException, Exception {
-        long startTime = System.nanoTime();
+        
         String stats = request.getParameter(PARAM_STATS);
 
         if (stats != null && stats.equals(PARAM_STATS)) {
@@ -91,15 +104,30 @@ public class ChargeController extends DbgFrontendCore {
         }
 
         // TODO : decode to check params
-        echoAndStats(startTime, renderByTemplate(request, response), response);
+        echoAndStats(logEntity, renderByTemplate(logEntity, request, response), response);
     }
 
-    private void echoAndStats(long startTime, String html, HttpServletResponse response) {
+    private void echoAndStats(LogEntity logEntity, String html, HttpServletResponse response)
+    {
+        logEntity.endTime = System.currentTimeMillis();
         this.echo(html, response);
-        this.readStats.addMicro((System.nanoTime() - startTime) / 1000);
+        
     }
 
-    private String renderByTemplate(HttpServletRequest request, HttpServletResponse response) throws TemplateException, ServletException, TException, IOException, Exception {
+    private void setValue(TemplateDataDictionary dic, HttpServletRequest request) {
+        dic.setVariable("userid", request.getParameter("userid"));
+        dic.setVariable("platform", request.getParameter("platform"));
+        dic.setVariable("flow", request.getParameter("flow"));
+        dic.setVariable("itemid", request.getParameter("itemid"));
+        dic.setVariable("itemname", request.getParameter("itemname"));
+        dic.setVariable("itemquantity", request.getParameter("itemquantity"));
+        dic.setVariable("chargeAmt", request.getParameter("chargeamt"));
+        dic.setVariable("serverid", request.getParameter("serverid"));
+        dic.setVariable("apptransid", request.getParameter("apptransid"));
+        dic.setVariable("appTest", request.getParameter("appTest"));
+    }
+
+    private String renderByTemplate(LogEntity logEntity,HttpServletRequest request, HttpServletResponse response) throws TemplateException, ServletException, TException, IOException, Exception {
 
         TemplateLoader templateLoader = TemplateResourceLoader.create("view/");
         Template template = templateLoader.getTemplate("master");
@@ -107,9 +135,10 @@ public class ChargeController extends DbgFrontendCore {
         dic.setVariable("PAYTITLE", DbgFrontEndConfig.MasterFormTitle);
         dic.setVariable("PAYURL", DbgFrontEndConfig.SystemUrl);
         dic.setVariable("STATIC_URL", DbgFrontEndConfig.StaticContentUrl);
-        dic.setVariable("SYSTEM_CREDITS_URL", DbgFrontEndConfig.SystemCreditsUrl);
+//        dic.setVariable("SYSTEM_CREDITS_URL", DbgFrontEndConfig.SystemCreditsUrl);
         dic.setVariable("apptransid", request.getParameter("apptransid"));
         dic.setVariable("appid", request.getParameter("appid"));
+
         int pmcID = -1;
         int appID = -1;
         PaymentHidenInfo info = new PaymentHidenInfo();
@@ -118,13 +147,16 @@ public class ChargeController extends DbgFrontendCore {
             appID = Integer.parseInt(request.getParameter("appid"));
         } catch (NumberFormatException ex) {
             logger.error("parseInt pmcID and appID  error: " + ex.toString());
+            logEntity.exception = ex.getMessage() + "|" + ExceptionUtils.getStackTrace(ex);
         }
+
         switch (pmcID) {
             case -1:
                 dic.showSection("notify");
                 String msg = "Kênh thanh toán không hợp lệ, vui lòng chọn lại!";
                 dic.setVariable("message", msg);
-                dic.setVariable("transid", request.getParameter("transid"));
+//                dic.setVariable("transid", String.valueOf(r.transID));
+                setValue(dic, request);
                 SetValuesErrorForRedirectInformationNotify(request, dic, msg);
                 break;
             case 1:  //ZingCard      
@@ -162,7 +194,8 @@ public class ChargeController extends DbgFrontendCore {
                     dic.showSection("notify");
                     String msg2 = "Kênh thanh toán này chưa được hỗ trợ, vui lòng quay lại sau!";
                     dic.setVariable("message", msg2);
-                    dic.setVariable("transid", request.getParameter("transid"));
+//                    dic.setVariable("transid", String.valueOf(r.transID));
+                    setValue(dic, request);
                     SetValuesErrorForRedirectInformationNotify(request, dic, msg2);
                 }
                 break;
@@ -187,7 +220,7 @@ public class ChargeController extends DbgFrontendCore {
             dic.showSection("notify");
             String msg1 = "Thông tin ứng dụng không hợp lệ!";
             dic.setVariable("message", msg1);
-            dic.setVariable("transid", request.getParameter("transid"));
+            setValue(dic, request);
             SetValuesErrorForRedirectInformationNotify(request, dic, msg1);
         } else {
 
@@ -204,9 +237,8 @@ public class ChargeController extends DbgFrontendCore {
             if (DbgFrontEndConfig.AppEntityMap.get(appID) != null) {
                 dic.setVariable("appname", DbgFrontEndConfig.AppEntityMap.get(appID).appDesc);
             }
-            dic.setVariable("transid", request.getParameter("transid"));
+            setValue(dic, request);
             dic.setVariable("appid", request.getParameter("appid"));
-            dic.setVariable("appdata", request.getParameter("appdata"));
             dic.setVariable("pmcid", request.getParameter("pmcid"));
             if (GetBackButtonHTML(request)) {
                 dic.addSection("BACK_BTN");
@@ -222,7 +254,7 @@ public class ChargeController extends DbgFrontendCore {
             dic.showSection("notify");
             String msg1 = "Thông tin ứng dụng không hợp lệ!";
             dic.setVariable("message", msg1);
-            dic.setVariable("transid", request.getParameter("transid"));
+            setValue(dic, request);
             SetValuesErrorForRedirectInformationNotify(request, dic, msg1);
         } else {
             dic.setVariable("PMC_CHARGE_HEADER", DbgFrontEndConfig.Get_pmc_chargemsg(pmcID));
@@ -233,7 +265,6 @@ public class ChargeController extends DbgFrontendCore {
             dic.setVariable("tco_patternCardPassword", DbgFrontEndConfig.TelcoCardPasswordValidatorPatterns.get(pmcID));
             Map<Integer, PmcEntity> PmcEntityMap = DbgFrontEndConfig.GetPmcSupportByAppID(request.getParameter("appid"));
             PmcEntity pmcEntity = PmcEntityMap.get(pmcID);
-            //if (DbgFrontEndConfig.PmcEntityMap.get(pmcID) != null)
             if (pmcEntity != null) {
                 //dic.setVariable("pmcname", DbgFrontEndConfig.PmcEntityMap.get(pmcID).pmcDesc);
                 dic.setVariable("pmcname", pmcEntity.pmcDesc);
@@ -241,10 +272,9 @@ public class ChargeController extends DbgFrontendCore {
             if (DbgFrontEndConfig.AppEntityMap.get(appID) != null) {
                 dic.setVariable("appname", DbgFrontEndConfig.AppEntityMap.get(appID).appDesc);
             }
-            dic.setVariable("transid", request.getParameter("transid"));
             dic.setVariable("appid", request.getParameter("appid"));
-            dic.setVariable("appdata", request.getParameter("appdata"));
             dic.setVariable("pmcid", request.getParameter("pmcid"));
+            setValue(dic, request);
             if (GetBackButtonHTML(request)) {
                 dic.addSection("BACK_BTN");
             }
@@ -253,210 +283,20 @@ public class ChargeController extends DbgFrontendCore {
         }
     }
 
-//    private void renderCaseZingXu(HttpServletRequest request, HttpServletResponse response, TemplateDataDictionary dic, int pmcID, int appID,PaymentHidenInfo info ) throws ServletException, IOException, TemplateException, Exception
-//    {
-//        int vnd= 100;
-//        if (appID == -1)
-//        {
-//            dic.showSection("notify");
-//            String msg1 = "Thông tin ứng dụng không hợp lệ!";
-//            dic.setVariable("message", msg1);
-//            dic.setVariable("transid", request.getParameter("transid"));
-//            SetValuesErrorForRedirectInformationNotify(request, dic, msg1);
-//        }
-//        else
-//        {
-//            if(IsZaloApp(String.valueOf(appID)))
-//            {
-//                //Change for zalo to get info of wphone         
-//                String  _n_platform = request.getParameter("pl") ;
-//                if(_n_platform!=null && !_n_platform.isEmpty())
-//                {
-//                    if(_n_platform.equalsIgnoreCase("wphone") ||
-//                         _n_platform.equalsIgnoreCase("wp"))        
-//                    {
-//                        _n_platform = "wp";
-//                    }
-//                }
-//                RequestDispatcher rd = ContextHandler.getCurrentContext().getRequestDispatcher("/zalochargezingxu?"
-//                        +"pl=" + _n_platform +  "&url_redirect=" + getRedirectURL(request) );                                    
-//                if (rd != null)
-//                {                            
-//                    rd.forward(request, response);
-//                }
-//                else
-//                {
-//                    processRequest(request, response);
-//                }                         
-//
-//            }
-//            else
-//            {
-//
-//                SSO3Account account = getSSO3Account(request);
-//                info = getDefaultZingmePaymentHidenInfo(request, "");
-//                info.pmcID= PMCIDEnum.ZING_XU.getValue();
-//                if (DbgFrontEndConfig.PmcEntityMap.containsKey(pmcID)) {
-//                    info.pmcName = DbgFrontEndConfig.PmcEntityMap.get(pmcID).pmcDesc;
-//                }
-//                storeZingMePaymentHidenInfo(request, "");
-//                dic.setVariable("urlbase", DbgFrontEndConfig.SystemUrl);
-//                //Set for add more ZingXu      
-//
-//                if (account != null)
-//                {                        
-//                   try
-//                   {    //BANGDQ added for decypt appdata to check flow and chargeAmt to fill chargeAmt
-//
-//                        AppData _appdata = DecryptAppData(appID, info.appData);
-//                        long zingxuamt = _appdata.chargeAmt /vnd;
-//                        if(_appdata!=null)
-//                        { 
-//                            if(_appdata.flow == 2)
-//                            {                                    
-//                                if(zingxuamt > 0                                            
-//                                        && zingxuamt <= DbgFrontEndConfig.MaxZingXu                                           
-//                                        && (zingxuamt*vnd== _appdata.chargeAmt)
-//                                        && zingxuamt >= DbgFrontEndConfig.MinZingXu)
-//                                {                                    
-//                                    BalanceResp balance = getZingXuBallance(account.userName);
-//
-//                                    dic.showSection("chargezingxu");                    
-//                                    dic.showSection("charge");
-//                                    dic.setVariable("_waitingToRedirect2AppInterval",String.valueOf(DbgFrontEndConfig.AutoRedirectMiliSeconds));
-//                                    dic.setVariable("transid", info.transID);
-//                                    dic.setVariable("appid", info.appID);
-//                                    dic.setVariable("appdata", info.appData);
-//                                    dic.setVariable("pmcid", String.valueOf(info.pmcID));
-//                                    dic.setVariable("BACK_BTN", GetBackButtonHTML(request));
-//                                    dic.setVariable("accountname", account.userName);
-//                                    dic.setVariable("pl", info.devicePlatform);
-//                                    dic.setVariable("minzingxu", String.valueOf(DbgFrontEndConfig.MinZingXu));
-//
-//                                    if (balance != null)
-//                                    {
-//                                        dic.setVariable("xubalance", String.valueOf(balance.Cash));
-//                                        dic.setVariable("fmxubalance", formatcomma(balance.Cash));
-//                                    }
-//                                    //BANGDQ added for decypt appdata to check flow and chargeAmt to fill chargeAmt
-//                                    dic.setVariable("zingxuamt", formatcomma(zingxuamt));
-//                                    dic.setVariable("disable", "readonly = \"readonly\"");
-//
-//                                    RequestDispatcher rd = ContextHandler.getCurrentContext().getRequestDispatcher("/zingxuconfirm?zingxuamt="
-//                                            +formatcomma(zingxuamt)+"&pl=" + info.pl                                                                                                                   
-//                                            +"&appserverid="+info.appServerID +"&appdata=" + info.appData
-//                                            +"&url_redirect=" + getRedirectURL(request));
-//
-//                                    if (rd != null)
-//                                    {
-//
-//                                        rd.forward(request, response);
-//                                    }                                       
-//
-//                                }
-//                                else
-//                                {
-//                                    dic.showSection("notify");
-//                                    String msg1 = "Số lượng Zing Xu thanh toán không hợp lệ!";
-//                                    dic.setVariable("message", msg1);
-//                                    dic.setVariable("transid", request.getParameter("transid"));
-//                                    SetValuesErrorForRedirectInformationNotify(request, dic, msg1);
-//
-//                                }
-//
-//                            }else //Flow = 1
-//                            {                   
-//
-//                                BalanceResp balance = getZingXuBallance(account.userName);
-//                                dic.showSection("chargezingxu");                    
-//                                dic.showSection("charge");
-//                                dic.setVariable("_waitingToRedirect2AppInterval",String.valueOf(DbgFrontEndConfig.AutoRedirectMiliSeconds));
-//                                dic.setVariable("transid", info.transID);
-//                                dic.setVariable("appid", info.appID);
-//                                dic.setVariable("appdata", info.appData);
-//                                dic.setVariable("pmcid", String.valueOf(info.pmcID));
-//                                dic.setVariable("BACK_BTN", GetBackButtonHTML(request));
-//                                dic.setVariable("accountname", account.userName);
-//                                dic.setVariable("pl", info.devicePlatform);
-//                                dic.setVariable("minzingxu", String.valueOf(DbgFrontEndConfig.MinZingXu));
-//
-//                                if (balance != null)
-//                                {
-//                                    dic.setVariable("xubalance", String.valueOf(balance.Cash));
-//                                    dic.setVariable("fmxubalance", formatcomma(balance.Cash));
-//                                }
-//                                if(zingxuamt > 0 
-//                                        && zingxuamt <= DbgFrontEndConfig.MaxZingXu 
-//                                        && zingxuamt >= DbgFrontEndConfig.MinZingXu)
-//                                {
-//                                   //BANGDQ added for decypt appdata to check flow and chargeAmt to fill chargeAmt
-//                                   dic.setVariable("zingxuamt", formatcomma(zingxuamt));
-//                                }   
-//                                 // For Add more xu
-//                                dic.setVariable("zpv2url", DbgFrontEndConfig.AddMoreZingXuURL);      
-//
-//                                String cbString = String.format("%s/thanhtoan?transid=%s&pmcid=%s&appid=%s&_isdirect=%s",
-//                                                DbgFrontEndConfig.SystemUrl, request.getParameter("transid"), 7, 
-//                                                request.getParameter("appid"), GetIsDirectValue(request));
-//                                 URLCodec _encode = new URLCodec();                                             
-//                                String cbStringEncode =  _encode.encode(cbString);
-//                                String zpv2params = String.format("acc=%s&cb=%s",account.userName,cbStringEncode);
-//                                dic.setVariable("zpv2params", zpv2params);
-//                            }
-//                        }                             
-//                        else
-//                        {
-//                            dic.showSection("notify");
-//                            String msg1 = "Thông tin ứng dụng không hợp lệ!";
-//                            dic.setVariable("message", msg1);
-//                            dic.setVariable("transid", request.getParameter("transid"));
-//                            SetValuesErrorForRedirectInformationNotify(request, dic, msg1);
-//                        }                          
-//                    }
-//                    catch (Exception ex)
-//                    {
-//                        dic.setVariable("xubalance", "0");
-//                        dic.setVariable("fmxubalance", "0");
-//                        logger.error("getBallance  error: " + ex.toString());
-//                        //added when error get balance                            
-//
-//                        dic.showSection("notify");
-//                        String msg2 = "Hệ thống đang có lỗi, vui lòng thực hiện giao dịch lại sau!";
-//                        dic.setVariable("message", msg2);
-//                        dic.setVariable("transid", request.getParameter("transid"));
-//                        SetValuesErrorForRedirectInformationNotify(request, dic, msg2);
-//
-//
-//                    }
-//                }
-//                else
-//                {
-//                    RequestDispatcher rd = ContextHandler.getCurrentContext().getRequestDispatcher("/loginzingme?"
-//                        + "url_redirect=" + getRedirectURL(request));                                    
-//                    if (rd != null)
-//                    {                            
-//                        rd.forward(request, response);
-//                    }
-//                    else
-//                    {
-//                        processRequest(request, response);
-//                    }
-//                }
-//            }
-//        }
-//        
-//        SetValuesZingXuForRedirectInformation(info, dic, String.valueOf(pmcID));
-//        
-//    }
     private void renderCaseTKDienThoaiMobi(HttpServletRequest request, TemplateDataDictionary dic, int pmcID, int appID) {
         if (appID == -1) {
             dic.showSection("notify");
             String msg1 = "Thông tin ứng dụng không hợp lệ!";
             dic.setVariable("message", msg1);
-            dic.setVariable("transid", request.getParameter("transid"));
+            setValue(dic, request);
             SetValuesErrorForRedirectInformationNotify(request, dic, msg1);
         } else {
-            AppData _appdata = DecryptAppData(appID, request.getParameter("appdata"));
+            AppData _appdata = null;
+            if (request.getParameter("flow") != "" && request.getParameter("chargeamt") != "") {
+                _appdata = new AppData();
+                _appdata.flow = Integer.parseInt(request.getParameter("flow"));
+                _appdata.chargeAmt = Long.parseLong(request.getParameter("chargeamt"));
+            }
             if (_appdata != null) {
                 if (_appdata.flow == 2) {
                     long chargeamt = _appdata.chargeAmt;
@@ -475,11 +315,10 @@ public class ChargeController extends DbgFrontendCore {
                         if (DbgFrontEndConfig.AppEntityMap.get(appID) != null) {
                             dic.setVariable("appname", DbgFrontEndConfig.AppEntityMap.get(appID).appDesc);
                         }
-                        dic.setVariable("transid", request.getParameter("transid"));
                         dic.setVariable("appid", request.getParameter("appid"));
-                        dic.setVariable("appdata", request.getParameter("appdata"));
                         dic.setVariable("pmcid", request.getParameter("pmcid"));
-                        //dic.setVariable("BACK_BTN", GetBackButtonHTML(request));
+                        setValue(dic, request);
+
                         if (GetBackButtonHTML(request)) {
                             dic.addSection("BACK_BTN");
                         }
@@ -487,7 +326,7 @@ public class ChargeController extends DbgFrontendCore {
                         dic.showSection("notify");
                         String msg1 = "Số tiền thanh toán không hợp lệ!";
                         dic.setVariable("message", msg1);
-                        dic.setVariable("transid", request.getParameter("transid"));
+                        setValue(dic, request);
                         SetValuesErrorForRedirectInformationNotify(request, dic, msg1);
 
                     }
@@ -509,11 +348,10 @@ public class ChargeController extends DbgFrontendCore {
                     if (DbgFrontEndConfig.AppEntityMap.get(appID) != null) {
                         dic.setVariable("appname", DbgFrontEndConfig.AppEntityMap.get(appID).appDesc);
                     }
-                    dic.setVariable("transid", request.getParameter("transid"));
                     dic.setVariable("appid", request.getParameter("appid"));
-                    dic.setVariable("appdata", request.getParameter("appdata"));
                     dic.setVariable("pmcid", request.getParameter("pmcid"));
-                    //dic.setVariable("BACK_BTN", GetBackButtonHTML(request));
+                    setValue(dic, request);
+
                     if (GetBackButtonHTML(request)) {
                         dic.addSection("BACK_BTN");
                     }
@@ -523,7 +361,7 @@ public class ChargeController extends DbgFrontendCore {
                 dic.showSection("notify");
                 String msg1 = "Thông tin ứng dụng không hợp lệ!";
                 dic.setVariable("message", msg1);
-                dic.setVariable("transid", request.getParameter("transid"));
+                setValue(dic, request);
                 SetValuesErrorForRedirectInformationNotify(request, dic, msg1);
             }
         }
@@ -533,7 +371,12 @@ public class ChargeController extends DbgFrontendCore {
         //123Pay Banking
 
         dic.setVariable("chargeamtcalculated", "0");
-        AppData _appdata = DecryptAppData(appID, request.getParameter("appdata"));
+        AppData _appdata = null;
+        if (request.getParameter("flow") != "" && request.getParameter("chargeamt") != "") {
+            _appdata = new AppData();
+            _appdata.flow = Integer.parseInt(request.getParameter("flow"));
+            _appdata.chargeAmt = Long.parseLong(request.getParameter("chargeamt"));
+        }
         if (_appdata != null) {
             if (_appdata.flow == 2) {//khong cho sua doi so tien
 
@@ -551,8 +394,6 @@ public class ChargeController extends DbgFrontendCore {
                     }
                     if (DbgFrontEndConfig.AppEntityMap.get(appID) != null) {
                         dic.setVariable("appname", DbgFrontEndConfig.AppEntityMap.get(appID).appDesc);
-                        //   CustomPMCCostRateEnum appCostRate = CustomPMCCostRateEnum.fromInt(
-                        //          DbgFrontEndConfig.AppEntityMap.get(appID).isCustomPmcCostRate);
                         String StrisCustomPmcCostRate = String.valueOf(DbgFrontEndConfig.AppEntityMap.get(appID).isCustomPmcCostRate);
                         if (DbgFrontEndConfig.ATMDiscount.containsKey(StrisCustomPmcCostRate))//Apps that have discount percent config
                         {
@@ -570,14 +411,11 @@ public class ChargeController extends DbgFrontendCore {
                             dic.setVariable("chargeamtcalculated", String.valueOf(realmoney));
                         }
                     }
-                    dic.setVariable("transid", request.getParameter("transid"));
                     dic.setVariable("appid", request.getParameter("appid"));
-                    dic.setVariable("appdata", request.getParameter("appdata"));
                     dic.setVariable("pmcid", request.getParameter("pmcid"));
                     dic.setVariable("minatmmoney", String.valueOf(DbgFrontEndConfig.MinAtmMoney));
                     dic.setVariable("maxatmmoney", String.valueOf(DbgFrontEndConfig.MaxAtmMoney));
-
-                    //dic.setVariable("BACK_BTN", GetBackButtonHTML(request));
+                    setValue(dic, request);
                     if (GetBackButtonHTML(request)) {
                         dic.addSection("BACK_BTN");
                     }
@@ -598,7 +436,7 @@ public class ChargeController extends DbgFrontendCore {
                     dic.showSection("notify");
 
                     dic.setVariable("message", msg1);
-                    dic.setVariable("transid", request.getParameter("transid"));
+                    setValue(dic, request);
                     SetValuesErrorForRedirectInformationNotify(request, dic, msg1);
                 }
             } else //Flow = 1       , cho sua so tien                     
@@ -640,14 +478,11 @@ public class ChargeController extends DbgFrontendCore {
                         }
                     }
                 }
-                dic.setVariable("transid", request.getParameter("transid"));
                 dic.setVariable("appid", request.getParameter("appid"));
-                dic.setVariable("appdata", request.getParameter("appdata"));
                 dic.setVariable("pmcid", request.getParameter("pmcid"));
                 dic.setVariable("minatmmoney", String.valueOf(DbgFrontEndConfig.MinAtmMoney));
                 dic.setVariable("maxatmmoney", String.valueOf(DbgFrontEndConfig.MaxAtmMoney));
-
-                //dic.setVariable("BACK_BTN", GetBackButtonHTML(request));
+                setValue(dic, request);
                 if (GetBackButtonHTML(request)) {
                     dic.addSection("BACK_BTN");
                 }
@@ -663,7 +498,7 @@ public class ChargeController extends DbgFrontendCore {
             dic.showSection("notify");
             String msg1 = "Thông tin ứng dụng không hợp lệ!";
             dic.setVariable("message", msg1);
-            dic.setVariable("transid", request.getParameter("transid"));
+            setValue(dic, request);
             SetValuesErrorForRedirectInformationNotify(request, dic, msg1);
         }
 
@@ -673,7 +508,12 @@ public class ChargeController extends DbgFrontendCore {
         //123Pay VISA MASTER
 
         dic.setVariable("chargeamtcalculated", "0");
-        AppData _appdata = DecryptAppData(appID, request.getParameter("appdata"));
+        AppData _appdata = null;
+        if (request.getParameter("flow") != "" && request.getParameter("chargeamt") != "") {
+            _appdata = new AppData();
+            _appdata.flow = Integer.parseInt(request.getParameter("flow"));
+            _appdata.chargeAmt = Long.parseLong(request.getParameter("chargeamt"));
+        }
         if (_appdata != null) {
             if (_appdata.flow == 2) {
 
@@ -719,14 +559,11 @@ public class ChargeController extends DbgFrontendCore {
                             dic.setVariable("chargeamtcalculated", String.valueOf(realmoney));
                         }
                     }
-                    dic.setVariable("transid", request.getParameter("transid"));
                     dic.setVariable("appid", request.getParameter("appid"));
-                    dic.setVariable("appdata", request.getParameter("appdata"));
                     dic.setVariable("pmcid", request.getParameter("pmcid"));
                     dic.setVariable("minatmmoney", String.valueOf(getVisaMasterJCBMinMoney(pmcID)));
                     dic.setVariable("maxatmmoney", String.valueOf(DbgFrontEndConfig.MaxAtmMoney));
-
-                    //dic.setVariable("BACK_BTN", GetBackButtonHTML(request));
+                    setValue(dic, request);
                     if (GetBackButtonHTML(request)) {
                         dic.addSection("BACK_BTN");
                     }
@@ -745,7 +582,7 @@ public class ChargeController extends DbgFrontendCore {
 
                     dic.showSection("notify");
                     dic.setVariable("message", msg1);
-                    dic.setVariable("transid", request.getParameter("transid"));
+                    setValue(dic, request);
                     SetValuesErrorForRedirectInformationNotify(request, dic, msg1);
                 }
             } else //Flow = 1                            
@@ -797,14 +634,11 @@ public class ChargeController extends DbgFrontendCore {
                         }
                     }
                 }
-                dic.setVariable("transid", request.getParameter("transid"));
                 dic.setVariable("appid", request.getParameter("appid"));
-                dic.setVariable("appdata", request.getParameter("appdata"));
                 dic.setVariable("pmcid", request.getParameter("pmcid"));
                 dic.setVariable("minatmmoney", String.valueOf(getVisaMasterJCBMinMoney(pmcID)));
                 dic.setVariable("maxatmmoney", String.valueOf(DbgFrontEndConfig.MaxAtmMoney));
-
-                //dic.setVariable("BACK_BTN", GetBackButtonHTML(request));
+                setValue(dic, request);
                 if (GetBackButtonHTML(request)) {
                     dic.addSection("BACK_BTN");
                 }
@@ -820,183 +654,12 @@ public class ChargeController extends DbgFrontendCore {
             dic.showSection("notify");
             String msg1 = "Thông tin ứng dụng không hợp lệ!";
             dic.setVariable("message", msg1);
-            dic.setVariable("transid", request.getParameter("transid"));
+            setValue(dic, request);
             SetValuesErrorForRedirectInformationNotify(request, dic, msg1);
         }
 
     }
 
-//    private void renderCaseThapPhongWallet(HttpServletRequest request, HttpServletResponse response, TemplateDataDictionary dic, int pmcID, int appID,PaymentHidenInfo info ) throws ServletException, IOException, TemplateException, Exception
-//    {
-//        int vnd = 100;
-//        
-//        if (appID == -1)
-//        {
-//            dic.showSection("notify");
-//            String msg1 = "Thông tin ứng dụng không hợp lệ!";
-//            dic.setVariable("message", msg1);
-//            dic.setVariable("transid", request.getParameter("transid"));
-//            SetValuesErrorForRedirectInformationNotify(request, dic, msg1);
-//        }
-//        else
-//        {      
-//
-//            SSO3Account account = getSSO3Account(request);
-//            info = getDefaultZingmePaymentHidenInfo(request, "");
-//            info.pmcID= PMCIDEnum.ThapPhong_Wallet.getValue();
-//            if (DbgFrontEndConfig.PmcEntityMap.containsKey(pmcID)) {
-//                info.pmcName = DbgFrontEndConfig.PmcEntityMap.get(pmcID).pmcDesc;
-//            }
-//            storeZingMePaymentHidenInfo(request, "");
-//            dic.setVariable("urlbase", DbgFrontEndConfig.SystemUrl);
-//            //Set for add more ZingXu      
-//
-//            if (account != null)
-//            {                        
-//               try
-//               {    //BANGDQ added for decypt appdata to check flow and chargeAmt to fill chargeAmt
-//
-//                    AppData _appdata = DecryptAppData(appID, info.appData);
-//                    long thapphongxuamt = _appdata.chargeAmt /vnd;
-//                    if(_appdata!=null)
-//                    { 
-//                        if(_appdata.flow == 2)
-//                        {                                    
-//                            if(thapphongxuamt > 0                                            
-//                                    && thapphongxuamt <= DbgFrontEndConfig.ThapPhongMaxXu                                           
-//                                    && (thapphongxuamt*vnd== _appdata.chargeAmt)
-//                                    && thapphongxuamt >= DbgFrontEndConfig.ThapPhongMinXu)
-//                            {                                    
-//                                ThapPhongBalanceResp balance = getThapPhongBallance(account.userName);
-//
-//                                dic.showSection("chargethapphong");                    
-//                                dic.showSection("charge");
-//                                dic.setVariable("_waitingToRedirect2AppInterval",String.valueOf(DbgFrontEndConfig.AutoRedirectMiliSeconds));
-//                                dic.setVariable("transid", info.transID);
-//                                dic.setVariable("appid", info.appID);
-//                                dic.setVariable("appdata", info.appData);
-//                                dic.setVariable("pmcid", String.valueOf(info.pmcID));
-//                                dic.setVariable("BACK_BTN", GetBackButtonHTML(request));
-//                                dic.setVariable("accountname", account.userName);
-//                                dic.setVariable("pl", info.devicePlatform);
-//                                dic.setVariable("minthapphongxu", String.valueOf(DbgFrontEndConfig.ThapPhongMinXu));
-//
-//                                if (balance != null)
-//                                {
-//                                    dic.setVariable("thapphongbalance", String.valueOf(balance.Balance));
-//                                    dic.setVariable("fmthapphongbalance", formatcomma(balance.Balance));
-//                                }
-//                                //BANGDQ added for decypt appdata to check flow and chargeAmt to fill chargeAmt
-//                                dic.setVariable("thapphongxuamt", formatcomma(thapphongxuamt));
-//                                dic.setVariable("disable", "readonly = \"readonly\"");
-//
-//                                RequestDispatcher rd = ContextHandler.getCurrentContext().getRequestDispatcher("/thapphongconfirm?thapphongxuamt="
-//                                        +formatcomma(thapphongxuamt)+"&pl=" + info.pl                                                                                                                   
-//                                        +"&appserverid="+info.appServerID +"&appdata=" + info.appData
-//                                        +"&url_redirect=" + getRedirectURL(request));
-//
-//                                if (rd != null)
-//                                {
-//
-//                                    rd.forward(request, response);
-//                                }                                       
-//
-//                            }
-//                            else
-//                            {
-//                                dic.showSection("notify");
-//                                String msg1 = "Số lượng Xu thanh toán không hợp lệ!";
-//                                dic.setVariable("message", msg1);
-//                                dic.setVariable("transid", request.getParameter("transid"));
-//                                SetValuesErrorForRedirectInformationNotify(request, dic, msg1);
-//
-//                            }
-//
-//                        }else //Flow = 1
-//                        {                   
-//
-//                            ThapPhongBalanceResp balance = getThapPhongBallance(account.userName);
-//                            dic.showSection("chargethapphong");                    
-//                            dic.showSection("charge");
-//                            dic.setVariable("_waitingToRedirect2AppInterval",String.valueOf(DbgFrontEndConfig.AutoRedirectMiliSeconds));
-//                            dic.setVariable("transid", info.transID);
-//                            dic.setVariable("appid", info.appID);
-//                            dic.setVariable("appdata", info.appData);
-//                            dic.setVariable("pmcid", String.valueOf(info.pmcID));
-//                            dic.setVariable("BACK_BTN", GetBackButtonHTML(request));
-//                            dic.setVariable("accountname", account.userName);
-//                            dic.setVariable("pl", info.devicePlatform);
-//                            dic.setVariable("minthapphongxu", String.valueOf(DbgFrontEndConfig.ThapPhongMinXu));
-//
-//                            if (balance != null)
-//                            {
-//                                dic.setVariable("thapphongbalance", String.valueOf(balance.Balance));
-//                                dic.setVariable("fmthapphongbalance", formatcomma(balance.Balance));
-//                            }
-//                            if(thapphongxuamt > 0 
-//                                    && thapphongxuamt <= DbgFrontEndConfig.ThapPhongMaxXu 
-//                                    && thapphongxuamt >= DbgFrontEndConfig.ThapPhongMinXu)
-//                            {
-//                               //BANGDQ added for decypt appdata to check flow and chargeAmt to fill chargeAmt
-//                               dic.setVariable("thapphongxuamt", formatcomma(thapphongxuamt));
-//                            }   
-//                             // For Add more xu
-//                            dic.setVariable("tpmorexuurl", DbgFrontEndConfig.ThapPhongMoreXuURL);      
-//
-//                            String cbString = String.format("%s/thanhtoan?transid=%s&pmcid=%s&appid=%s&_isdirect=%s",
-//                                            DbgFrontEndConfig.SystemUrl, request.getParameter("transid"), 22, 
-//                                            request.getParameter("appid"), GetIsDirectValue(request));
-//                             URLCodec _encode = new URLCodec();                                             
-//                            String cbStringEncode =  _encode.encode(cbString);
-//                            String tpmorexuparams = String.format("acc=%s&cb=%s",account.userName,cbStringEncode);
-//                            dic.setVariable("tpmorexuparams", tpmorexuparams);
-//                        }
-//                    }                             
-//                    else
-//                    {
-//                        dic.showSection("notify");
-//                        String msg1 = "Thông tin ứng dụng không hợp lệ!";
-//                        dic.setVariable("message", msg1);
-//                        dic.setVariable("transid", request.getParameter("transid"));
-//                        SetValuesErrorForRedirectInformationNotify(request, dic, msg1);
-//                    }                          
-//                }
-//                catch (Exception ex)
-//                {
-//                    dic.setVariable("thapphongbalance", "0");
-//                    dic.setVariable("fmthapphongbalance", "0");
-//                    logger.error("getBallance  error: " + ex.toString());
-//                    //added when error get balance                            
-//
-//                    dic.showSection("notify");
-//                    String msg2 = "Hệ thống đang có lỗi, vui lòng thực hiện giao dịch lại sau!";
-//                    dic.setVariable("message", msg2);
-//                    dic.setVariable("transid", request.getParameter("transid"));
-//                    SetValuesErrorForRedirectInformationNotify(request, dic, msg2);
-//
-//
-//                }
-//            }
-//            else
-//            {
-//                RequestDispatcher rd = ContextHandler.getCurrentContext().getRequestDispatcher("/loginzingme?"
-//                    + "url_redirect=" + getRedirectURL(request));                                    
-//                if (rd != null)
-//                {                            
-//                    rd.forward(request, response);
-//                }
-//                else
-//                {
-//                    processRequest(request, response);
-//                }
-//            }
-//            
-//        }
-//        
-//        SetValuesZingXuForRedirectInformation(info, dic, String.valueOf(pmcID));
-//        
-//    }   
-//   
     private void SetValuesForRedirectInformation(HttpServletRequest request, TemplateDataDictionary dic) {
 
         String strAppID = request.getParameter("appid");
@@ -1016,7 +679,7 @@ public class ChargeController extends DbgFrontendCore {
 
             }
         }
-        dic.setVariable("_n_tranxid", request.getParameter("transid"));
+//        dic.setVariable("_n_tranxid", String.valueOf(r.transID));
         dic.setVariable("_n_state", "billing");
         dic.setVariable("_n_apptranxid", request.getParameter("apptransid"));
         dic.setVariable("_n_platform", request.getParameter("pl"));
@@ -1028,37 +691,6 @@ public class ChargeController extends DbgFrontendCore {
         dic.setVariable("_n_grossamount", "");
         dic.setVariable("appid", request.getParameter("appid"));
 
-    }
-
-    private void SetValuesZingXuForRedirectInformation(PaymentHidenInfo info, TemplateDataDictionary dic, String pmcid) {
-
-        String strAppID = info.appID;
-        String strAppServerID = info.appServerID;
-        String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);
-        String url = info.redirectUrl;
-        if (url != null && !url.trim().equals("") && !url.trim().equals("#")) {
-            dic.setVariable("_n_url_redirect", url);
-        } else {
-            if (DbgFrontEndConfig.AppServerEntityMap.containsKey(key)) {
-                MiniAppServerEntity entity = DbgFrontEndConfig.AppServerEntityMap.get(key);
-                if (entity != null) {
-                    dic.setVariable("_n_url_redirect", entity.appRedirectUrl);
-                }
-            } else {
-                dic.setVariable("_n_url_redirect", "");
-            }
-        }
-        dic.setVariable("_n_tranxid", info.transID);
-        dic.setVariable("_n_state", "billing");
-        dic.setVariable("_n_apptranxid", info.appTransID);
-        dic.setVariable("_n_platform", info.pl);
-        dic.setVariable("_n_netamount", "");
-        dic.setVariable("appserverid", info.appServerID);
-        dic.setVariable("apptransid", info.appTransID);
-        dic.setVariable("_n_pmc", pmcid);
-        dic.setVariable("appid", info.appID);
-
-        dic.setVariable("_n_grossamount", "");
     }
 
     private void SetValuesErrorForRedirectInformationNotify(HttpServletRequest request, TemplateDataDictionary dic, String msg) {
@@ -1094,7 +726,7 @@ public class ChargeController extends DbgFrontendCore {
         dic.setVariable("PAYTITLE", DbgFrontEndConfig.MasterFormTitle);
         dic.setVariable("PAYURL", DbgFrontEndConfig.SystemUrl);
         dic.setVariable("STATIC_URL", DbgFrontEndConfig.StaticContentUrl);
-        dic.setVariable("SYSTEM_CREDITS_URL", DbgFrontEndConfig.SystemCreditsUrl);
+//        dic.setVariable("SYSTEM_CREDITS_URL", DbgFrontEndConfig.SystemCreditsUrl);
         dic.setVariable("apptransid", request.getParameter("apptransid"));
 
         //dic.setVariable("STATUS_BAR", GetStep2BarHTML());
@@ -1103,12 +735,12 @@ public class ChargeController extends DbgFrontendCore {
         dic.showSection("notify");
 
         dic.setVariable("message", strError);
-        dic.setVariable("transid", request.getParameter("transid"));
         dic.setVariable("appid", request.getParameter("appid"));
 
         SetValuesForRedirectInformation(request, dic);
         dic.setVariable("_n_error_code", errorCode);
         dic.setVariable("_n_error_msg", strError);
+        setValue(dic, request);
 
         //added by BANGDQ for Special Layout 30/10/2014 13:20:10
         //SetSpecialLayOut(request, dic);
