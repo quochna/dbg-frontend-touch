@@ -4,7 +4,7 @@ import httpservice.WebServer;
 import java.io.File;
 import com.vng.jcore.common.LogUtil;
 import dbg.frontend.config.DbgFrontEndConfig;
-import dbg.frontend.touch.DbgTestToolConfig;
+//import dbg.frontend.touch.DbgTestToolConfig;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 
@@ -18,7 +18,7 @@ public class Main
         {
             LogUtil.init();     
             InitBusiness();
-            DbgTestToolConfig.loadConfigs();
+//            DbgTestToolConfig.loadConfigs();
             
             String pidFile = System.getProperty("pidfile");
             if (pidFile != null)
