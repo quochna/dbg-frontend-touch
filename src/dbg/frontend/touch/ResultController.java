@@ -368,7 +368,7 @@ public class ResultController extends DbgFrontendCore {
     private void SetValuesForRedirectInformation(HttpServletRequest request, TemplateDataDictionary dic, String transid) {
 
         String strAppID = request.getParameter("appid");
-        String strAppServerID = request.getParameter("appserverid");
+        String strAppServerID = request.getParameter("serverid");
         String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);
 
         String url = request.getParameter("url_redirect");
@@ -401,7 +401,7 @@ public class ResultController extends DbgFrontendCore {
     private void SetValuesForRedirectInformationForNotify(LogEntity logEntity, HttpServletRequest request, TemplateDataDictionary dic, String errorCode, String errormsg, String transid) {
 
         String strAppID = request.getParameter("appid");
-        String strAppServerID = request.getParameter("appserverid");
+        String strAppServerID = request.getParameter("serverid");
         String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);
         String url = request.getParameter("url_redirect");
         if (url != null && !url.trim().equals("")) {
@@ -452,7 +452,7 @@ public class ResultController extends DbgFrontendCore {
         HttpSession session = request.getSession();
         SessionResultInfo ssResultInfo = new SessionResultInfo();
         String strAppID = request.getParameter("appid");
-        String strAppServerID = request.getParameter("appserverid");
+        String strAppServerID = request.getParameter("serverid");
         ssResultInfo.appid = strAppID;
         ssResultInfo.appserverid = strAppServerID;
         String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);

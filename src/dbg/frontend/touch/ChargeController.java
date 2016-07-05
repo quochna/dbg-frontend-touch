@@ -663,7 +663,7 @@ public class ChargeController extends DbgFrontendCore {
     private void SetValuesForRedirectInformation(HttpServletRequest request, TemplateDataDictionary dic) {
 
         String strAppID = request.getParameter("appid");
-        String strAppServerID = request.getParameter("appserverid");
+        String strAppServerID = request.getParameter("serverid");
         String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);
         String url = request.getParameter("url_redirect");
         if (url != null && !url.trim().equals("") && !url.trim().equals("#")) {
@@ -684,7 +684,7 @@ public class ChargeController extends DbgFrontendCore {
         dic.setVariable("_n_apptranxid", request.getParameter("apptransid"));
         dic.setVariable("_n_platform", request.getParameter("pl"));
         dic.setVariable("_n_netamount", "");
-        dic.setVariable("appserverid", request.getParameter("appserverid"));
+        dic.setVariable("appserverid", request.getParameter("serverid"));
         dic.setVariable("apptransid", request.getParameter("apptransid"));
 
         dic.setVariable("_n_pmc", request.getParameter("pmcid"));
@@ -698,7 +698,7 @@ public class ChargeController extends DbgFrontendCore {
         dic.setVariable("_n_error_msg", msg);
         //added by BangDQ
         String strAppID = request.getParameter("appid");
-        String strAppServerID = request.getParameter("appserverid");
+        String strAppServerID = request.getParameter("serverid");
         String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);
         String url = request.getParameter("url_redirect");
 
@@ -757,7 +757,7 @@ public class ChargeController extends DbgFrontendCore {
     private String getRedirectURL(HttpServletRequest request) {
 
         String strAppID = request.getParameter("appid");
-        String strAppServerID = request.getParameter("appserverid");
+        String strAppServerID = request.getParameter("serverid");
         String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);
 
         String url = request.getParameter("url_redirect");

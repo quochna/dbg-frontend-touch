@@ -563,7 +563,7 @@ public class SelectChannelController extends DbgFrontendCore {
     private void SetValuesForRedirectInformation(HttpServletRequest request, TemplateDataDictionary dic) {
 
         String strAppID = request.getParameter("appid");
-        String strAppServerID = request.getParameter("appserverid");
+        String strAppServerID = request.getParameter("serverid");
         String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);
 
         String url = request.getParameter("url_redirect");
@@ -587,7 +587,7 @@ public class SelectChannelController extends DbgFrontendCore {
         dic.setVariable("_n_apptranxid", request.getParameter("apptransid"));
         dic.setVariable("_n_platform", request.getParameter("pl"));
         dic.setVariable("_n_netamount", "");
-        dic.setVariable("appserverid", request.getParameter("appserverid"));
+        dic.setVariable("serverid", request.getParameter("serverid"));
 
         dic.setVariable("_n_pmc", "");
         dic.setVariable("_n_grossamount", "");
@@ -730,7 +730,7 @@ public class SelectChannelController extends DbgFrontendCore {
         dic.setVariable("_n_error_msg", msg);
         //added by BangDQ
         String strAppID = request.getParameter("appid");
-        String strAppServerID = request.getParameter("appserverid");
+        String strAppServerID = request.getParameter("serverid");
         String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);
         String url = request.getParameter("url_redirect");
 
