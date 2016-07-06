@@ -18,7 +18,6 @@ public class Main
         {
             LogUtil.init();     
             InitBusiness();
-//            DbgTestToolConfig.loadConfigs();
             
             String pidFile = System.getProperty("pidfile");
             if (pidFile != null)

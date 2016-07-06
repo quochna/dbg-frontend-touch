@@ -11,32 +11,26 @@ import org.eclipse.jetty.server.Server;
  *
  * @author hainpt
  */
-public class ShutdownThread extends Thread
-{
+public class ShutdownThread extends Thread {
 
     private Server server;
     private static Logger ClassLogger = Logger.getLogger(ShutdownThread.class);
 
-    public ShutdownThread(Server server)
-    {
+    public ShutdownThread(Server server) {
         this.server = server;
     }
 
     @Override
-    public void run()
-    {
+    public void run() {
         ClassLogger.info("Waiting for shut down!");
-         try
-         {			
+        try {
             // Add code before shutdown here
             server.stop();
-         } 
-         catch (Exception ex)
-         {
-             ClassLogger.error(ex.getMessage());
-         }
-         
-         ClassLogger.info("Server shutted down!");
+        } catch (Exception ex) {
+            ClassLogger.error(ex.getMessage());
+        }
+
+        ClassLogger.info("Server shutted down!");
     }
-		
+
 }

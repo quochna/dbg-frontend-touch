@@ -97,7 +97,6 @@ public class WebServer extends Thread
         //End
         
         
-        String a = DbgFrontEndConfig.SystemUrl ;
         ResourceHandler resourceHandler = new ResourceHandler();
         resourceHandler.setDirectoriesListed(false);
         resourceHandler.setResourceBase(DbgFrontEndConfig.SystemPublicPath);

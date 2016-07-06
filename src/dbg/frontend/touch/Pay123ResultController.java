@@ -4,6 +4,7 @@
  */
 package dbg.frontend.touch;
 
+import dbg.frontend.touch.entity.SessionResultInfo;
 import dbg.frontend.touch.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -47,8 +48,7 @@ import org.apache.thrift.TException;
  *
  * @author bangdq
  */
-public class Pay123ResultController extends DbgFrontendCore
-{
+public class Pay123ResultController extends DbgFrontendCore {
 
     private static Logger logger = Logger.getLogger(Pay123ResultController.class);
     private final String ITEM_SEPARATE = "\\|";
@@ -56,40 +56,31 @@ public class Pay123ResultController extends DbgFrontendCore
     private final Monitor readStats = new Monitor();
     private static final Pay123ResultController instance = new Pay123ResultController();
 
-    public static Pay123ResultController getInstance()
-    {
+    public static Pay123ResultController getInstance() {
         return instance;
     }
 
-    
-
     @Override
-    public void handleRequest(HttpServletRequest request, HttpServletResponse response)
-    {
+    public void handleRequest(HttpServletRequest request, HttpServletResponse response) {
         LogEntity logEntity = new LogEntity();
-        try
-        {
+        try {
             logEntity.startTime = System.nanoTime();
             logEntity.userAgent = request.getHeader("User-Agent");
             logEntity.requestUrl = getRequestUrl(request);
             processRequest(logEntity, request, response);
-            
-        }
-        catch (Exception ex)
-        {
+
+        } catch (Exception ex) {
             logEntity.exception = ex.getMessage() + "|" + ExceptionUtils.getStackTrace(ex);
             logger.error(ex.toString());
-             echoAndStats(logEntity, render123PayExceptionErrorByTemplate( logEntity, request), response);
+            echoAndStats(logEntity, render123PayExceptionErrorByTemplate(logEntity, request), response);
         }
     }
 
-    protected void processRequest(LogEntity logEntity, HttpServletRequest request, HttpServletResponse response) throws TException, TemplateException, NoSuchAlgorithmException, UnsupportedEncodingException, IOException
-    {
+    protected void processRequest(LogEntity logEntity, HttpServletRequest request, HttpServletResponse response) throws TException, TemplateException, NoSuchAlgorithmException, UnsupportedEncodingException, IOException {
         long startTime = System.nanoTime();
         String stats = request.getParameter(PARAM_STATS);
 
-        if (stats != null && stats.equals(PARAM_STATS))
-        {
+        if (stats != null && stats.equals(PARAM_STATS)) {
             this.echo(this.readStats.dumpHtmlStats(), response);
             return;
         }
@@ -98,15 +89,13 @@ public class Pay123ResultController extends DbgFrontendCore
         echoAndStats(logEntity, renderByTemplate(logEntity, request, response), response);
     }
 
-    private void echoAndStats(LogEntity logEntity, String html, HttpServletResponse response)
-    {
+    private void echoAndStats(LogEntity logEntity, String html, HttpServletResponse response) {
         this.echo(html, response);
-       logEntity.endTime = System.currentTimeMillis();
+        logEntity.endTime = System.currentTimeMillis();
     }
 
     private String renderByTemplate(LogEntity logEntity, HttpServletRequest request, HttpServletResponse response)
-            throws TemplateException, NoSuchAlgorithmException, UnsupportedEncodingException, IOException
-    {
+            throws TemplateException, NoSuchAlgorithmException, UnsupportedEncodingException, IOException {
 
         TemplateLoader templateLoader = TemplateResourceLoader.create("view/");
         Template template = templateLoader.getTemplate("master");
@@ -127,121 +116,105 @@ public class Pay123ResultController extends DbgFrontendCore
 
         SetValuesForRedirectInformation(request, dic);
         //dic.setVariable("STATUS_BAR", GetStep3BarHTML());
-        
+
         dic.showSection("statusbar");
         dic.addSection("STEP3");
 
         String status = request.getParameter("status");
-        if (status != null)
-        {
+        if (status != null) {
             queryATMTransStatus(logEntity, request.getParameter("transactionID"));
         }
-      
-        
-        
+
         return template.renderToString(dic);
 
     }
 
-    private void SetValuesForRedirectInformation(HttpServletRequest request, TemplateDataDictionary dic)
-    {
+    private void SetValuesForRedirectInformation(HttpServletRequest request, TemplateDataDictionary dic) {
 
         HttpSession session = request.getSession();
         //transactionID 123Pay provide when Redirect
         String sskey = DbgFrontEndConfig.Pay123sessionkey
                 + request.getParameter("transactionID");
         SessionResultInfo ssResultInfo = (SessionResultInfo) session.getAttribute(sskey);
-        if (ssResultInfo != null)
-        {
+        if (ssResultInfo != null) {
             String strAppID = ssResultInfo.appid;
             String strAppServerID = ssResultInfo.appserverid;
             int appID = Integer.parseInt(strAppID);
-            if (DbgFrontEndConfig.AppEntityMap.get(appID) != null)
-            {
+            if (DbgFrontEndConfig.AppEntityMap.get(appID) != null) {
                 dic.setVariable("appName", DbgFrontEndConfig.AppEntityMap.get(appID).appDesc);
             }
 
-
             String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);
-            dic.setVariable("_n_url_redirect", ssResultInfo.url_redirect);
+            dic.setVariable("_n_url_redirect", ssResultInfo.urlredirect);
             dic.setVariable("_n_tranxid", ssResultInfo.transid);
             dic.setVariable("_n_state", "billed");
             dic.setVariable("_n_apptranxid", ssResultInfo.apptransid);
             dic.setVariable("_n_platform", ssResultInfo.pl);
-            dic.setVariable("_n_netamount", "");            
+            dic.setVariable("_n_netamount", "");
             dic.setVariable("_n_pmc", ssResultInfo.pmcid);
             dic.setVariable("_n_grossamount", "");
             dic.setVariable("appid", strAppID);
             dic.setVariable("pmcid", ssResultInfo.pmcid);
-               //added by BANGDQ for Special Layout 30/10/2014 13:20:10
+            //added by BANGDQ for Special Layout 30/10/2014 13:20:10
             //SetSpecialLayOut(request, dic,strAppID);
         }
 
-
     }
-     public String render123PayExceptionErrorByTemplate(LogEntity logEntity, HttpServletRequest request) 
-    {
-        try{
 
-        TemplateLoader templateLoader = TemplateResourceLoader.create("view/");
-        Template template = templateLoader.getTemplate("errorpage");
-        TemplateDataDictionary dic = TemplateDictionary.create();
-        dic.setVariable("PAYTITLE", DbgFrontEndConfig.MasterFormTitle);
-        dic.setVariable("PAYURL", DbgFrontEndConfig.SystemUrl);
-        dic.setVariable("STATIC_URL", DbgFrontEndConfig.StaticContentUrl);
+    public String render123PayExceptionErrorByTemplate(LogEntity logEntity, HttpServletRequest request) {
+        try {
+
+            TemplateLoader templateLoader = TemplateResourceLoader.create("view/");
+            Template template = templateLoader.getTemplate("errorpage");
+            TemplateDataDictionary dic = TemplateDictionary.create();
+            dic.setVariable("PAYTITLE", DbgFrontEndConfig.MasterFormTitle);
+            dic.setVariable("PAYURL", DbgFrontEndConfig.SystemUrl);
+            dic.setVariable("STATIC_URL", DbgFrontEndConfig.StaticContentUrl);
 //        dic.setVariable("SYSTEM_CREDITS_URL", DbgFrontEndConfig.SystemCreditsUrl);
-       
-        dic.setVariable("message", DbgFrontEndConfig.Exception);
-         
-        dic.setVariable("_n_error_code", "0");
-        dic.setVariable("_n_error_msg", DbgFrontEndConfig.Exception);   
-         
-        HttpSession session = request.getSession();
-        //transactionID 123Pay provide when Redirect
-        String sskey = DbgFrontEndConfig.Pay123sessionkey
-                + request.getParameter("transactionID");
-        SessionResultInfo ssResultInfo = (SessionResultInfo) session.getAttribute(sskey);
-        if (ssResultInfo != null)
-        {
-            String strAppID = ssResultInfo.appid;
-            String strAppServerID = ssResultInfo.appserverid;
-            int appID = Integer.parseInt(strAppID);
-            if (DbgFrontEndConfig.AppEntityMap.get(appID) != null)
-            {
-                dic.setVariable("appName", DbgFrontEndConfig.AppEntityMap.get(appID).appDesc);
+
+            dic.setVariable("message", DbgFrontEndConfig.Exception);
+
+            dic.setVariable("_n_error_code", "0");
+            dic.setVariable("_n_error_msg", DbgFrontEndConfig.Exception);
+
+            HttpSession session = request.getSession();
+            //transactionID 123Pay provide when Redirect
+            String sskey = DbgFrontEndConfig.Pay123sessionkey
+                    + request.getParameter("transactionID");
+            SessionResultInfo ssResultInfo = (SessionResultInfo) session.getAttribute(sskey);
+            if (ssResultInfo != null) {
+                String strAppID = ssResultInfo.appid;
+                String strAppServerID = ssResultInfo.appserverid;
+                int appID = Integer.parseInt(strAppID);
+                if (DbgFrontEndConfig.AppEntityMap.get(appID) != null) {
+                    dic.setVariable("appName", DbgFrontEndConfig.AppEntityMap.get(appID).appDesc);
+                }
+
+                String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);
+                dic.setVariable("_n_url_redirect", ssResultInfo.urlredirect);
+                dic.setVariable("_n_tranxid", ssResultInfo.transid);
+                dic.setVariable("_n_state", "billed");
+                dic.setVariable("_n_apptranxid", ssResultInfo.apptransid);
+                dic.setVariable("_n_platform", ssResultInfo.pl);
+                dic.setVariable("_n_netamount", "");
+                dic.setVariable("_n_pmc", ssResultInfo.pmcid);
+                dic.setVariable("_n_grossamount", "");
+                dic.setVariable("appid", strAppID);
+                dic.setVariable("pmcid", ssResultInfo.pmcid);
+                dic.setVariable("transid", request.getParameter("transactionID"));
+                //added by BANGDQ for Special Layout 30/10/2014 13:20:10
+                //SetSpecialLayOut(request, dic,strAppID);
             }
 
-
-            String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);
-            dic.setVariable("_n_url_redirect", ssResultInfo.url_redirect);
-            dic.setVariable("_n_tranxid", ssResultInfo.transid);
-            dic.setVariable("_n_state", "billed");
-            dic.setVariable("_n_apptranxid", ssResultInfo.apptransid);
-            dic.setVariable("_n_platform", ssResultInfo.pl);
-            dic.setVariable("_n_netamount", "");            
-            dic.setVariable("_n_pmc", ssResultInfo.pmcid);
-            dic.setVariable("_n_grossamount", "");
-            dic.setVariable("appid", strAppID);
-            dic.setVariable("pmcid", ssResultInfo.pmcid);
-            dic.setVariable("transid", request.getParameter("transactionID"));      
-               //added by BANGDQ for Special Layout 30/10/2014 13:20:10
-            //SetSpecialLayOut(request, dic,strAppID);
-        }     
-      
-        return template.renderToString(dic);
-        }catch ( Exception ex)
-        {
+            return template.renderToString(dic);
+        } catch (Exception ex) {
             logEntity.exception = ex.getMessage() + "|" + ExceptionUtils.getStackTrace(ex);
             logger.error(ex.getMessage());
             return DbgFrontEndConfig.Exception;
         }
     }
-    
 
-   
-
-    public TransStatusResp queryATMTransStatus(LogEntity logEntity, String transID) throws UnsupportedEncodingException, IOException
-    {
+    public TransStatusResp queryATMTransStatus(LogEntity logEntity, String transID) throws UnsupportedEncodingException, IOException {
 
         TransStatusResp resp = null;
         int timeout = DbgFrontEndConfig.CallApiTimeoutSeconds * 1000;
@@ -249,10 +222,9 @@ public class Pay123ResultController extends DbgFrontendCore
                 .setConnectTimeout(timeout)
                 .setConnectionRequestTimeout(timeout)
                 .setStaleConnectionCheckEnabled(true)
-                  .setSocketTimeout(timeout)
+                .setSocketTimeout(timeout)
                 .build();
-        try (CloseableHttpClient httpclient = HttpClients.custom().setDefaultRequestConfig(defaultRequestConfig).build())
-        {
+        try (CloseableHttpClient httpclient = HttpClients.custom().setDefaultRequestConfig(defaultRequestConfig).build()) {
 
             HttpPost httpPost = new HttpPost(DbgFrontEndConfig.atmquerystatusUrl);
             List<NameValuePair> nvps = new ArrayList<>();
@@ -263,22 +235,18 @@ public class Pay123ResultController extends DbgFrontendCore
             Date date = new Date(System.currentTimeMillis());
             nvps.add(new BasicNameValuePair("reqdate", formatSDF.format(date)));
             //Hash256(feClientID + transID + format(reqDate, yyyy-MM-dd HH:mm:ss.SSS) + hashKey)
-            try
-            {
+            try {
                 String data = String.format("%s%s%s%s", String.valueOf(DbgFrontEndConfig.WebFeClientID),
                         transID, formatSDF.format(date), DbgFrontEndConfig.WebFeHashKey);
                 String sigdata = dbg.util.HashUtil.hashSHA256(data);
                 nvps.add(new BasicNameValuePair("sig", sigdata));
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 logEntity.exception = ex.getMessage() + "|" + ExceptionUtils.getStackTrace(ex);
                 logger.error(ex.toString());
             }
 
             httpPost.setEntity(new UrlEncodedFormEntity(nvps, "UTF-8"));
-            try (CloseableHttpResponse response = httpclient.execute(httpPost))
-            {
+            try (CloseableHttpResponse response = httpclient.execute(httpPost)) {
                 HttpEntity entity = response.getEntity();
 
                 InputStream inputStream = entity.getContent();
@@ -294,6 +262,5 @@ public class Pay123ResultController extends DbgFrontendCore
 
         return resp;
     }
-    
-    
+
 }

@@ -17,8 +17,8 @@ import dbg.enums.PMCIDEnum;
 import dbg.enums.TransStatusEnum;
 import dbg.frontend.touch.DbgFrontendCore;
 import dbg.frontend.touch.Monitor;
-import dbg.frontend.touch.SessionCard;
-import dbg.frontend.touch.SessionResultInfo;
+import dbg.frontend.touch.entity.SessionCard;
+import dbg.frontend.touch.entity.SessionResultInfo;
 import dbg.frontend.touch.entity.LogEntity;
 import static dbg.frontend.utils.common.getRequestUrl;
 import static dbg.frontend.utils.common.sendPost;
@@ -112,7 +112,7 @@ public class ResultController extends DbgFrontendCore {
         DbgClient client = new DbgClient(dbgClientConfig);
 
         CreateRequestDataResult r = client.createRequestData(request.getParameter("userid"),
-                Integer.parseInt(request.getParameter("platform")),
+                DbgFrontEndConfig.Platform/*Integer.parseInt(request.getParameter("platform"))*/,
                 Integer.parseInt(request.getParameter("flow")),
                 request.getParameter("serverid"),
                 request.getParameter("itemid"),
@@ -371,7 +371,7 @@ public class ResultController extends DbgFrontendCore {
         String strAppServerID = request.getParameter("serverid");
         String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);
 
-        String url = request.getParameter("url_redirect");
+        String url = request.getParameter("urlredirect");
         if (url != null && !url.trim().equals("")) {
             dic.setVariable("_n_url_redirect", url);
 
@@ -403,7 +403,7 @@ public class ResultController extends DbgFrontendCore {
         String strAppID = request.getParameter("appid");
         String strAppServerID = request.getParameter("serverid");
         String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);
-        String url = request.getParameter("url_redirect");
+        String url = request.getParameter("urlredirect");
         if (url != null && !url.trim().equals("")) {
             dic.setVariable("_n_url_redirect", url);
 
@@ -456,18 +456,18 @@ public class ResultController extends DbgFrontendCore {
         ssResultInfo.appid = strAppID;
         ssResultInfo.appserverid = strAppServerID;
         String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);
-        String url = request.getParameter("url_redirect");
+        String url = request.getParameter("urlredirect");
         if (url != null && !url.trim().equals("") && !url.trim().equals("#")) {
-            ssResultInfo.url_redirect = url;
+            ssResultInfo.urlredirect = url;
 
         } else if (DbgFrontEndConfig.AppServerEntityMap.containsKey(key)) {
             MiniAppServerEntity entity = DbgFrontEndConfig.AppServerEntityMap.get(key);
             if (entity != null) {
-                ssResultInfo.url_redirect = entity.appRedirectUrl;
+                ssResultInfo.urlredirect = entity.appRedirectUrl;
 
             }
         } else {
-            ssResultInfo.url_redirect = "";
+            ssResultInfo.urlredirect = "";
 
         }
 

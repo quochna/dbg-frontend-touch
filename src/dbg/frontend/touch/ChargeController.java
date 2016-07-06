@@ -4,6 +4,7 @@
  */
 package dbg.frontend.touch;
 
+import dbg.frontend.touch.entity.SessionCard;
 import dbg.frontend.touch.*;
 import dbg.entity.AppData;
 import dbg.entity.MiniAppServerEntity;
@@ -665,7 +666,7 @@ public class ChargeController extends DbgFrontendCore {
         String strAppID = request.getParameter("appid");
         String strAppServerID = request.getParameter("serverid");
         String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);
-        String url = request.getParameter("url_redirect");
+        String url = request.getParameter("urlredirect");
         if (url != null && !url.trim().equals("") && !url.trim().equals("#")) {
             dic.setVariable("_n_url_redirect", url);
         } else {
@@ -700,7 +701,7 @@ public class ChargeController extends DbgFrontendCore {
         String strAppID = request.getParameter("appid");
         String strAppServerID = request.getParameter("serverid");
         String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);
-        String url = request.getParameter("url_redirect");
+        String url = request.getParameter("urlredirect");
 
         if (url != null && !url.trim().equals("") && !url.trim().equals("#")) {
             dic.setVariable("_n_url_redirect", url);
@@ -760,7 +761,7 @@ public class ChargeController extends DbgFrontendCore {
         String strAppServerID = request.getParameter("serverid");
         String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);
 
-        String url = request.getParameter("url_redirect");
+        String url = request.getParameter("urlredirect");
         if (url != null && !url.trim().equals("") && !url.trim().equals("#")) {
             return url;
         } else {

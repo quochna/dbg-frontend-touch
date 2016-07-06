@@ -4,13 +4,16 @@
  */
 package dbg.frontend.touch;
 
+import dbg.frontend.touch.entity.SessionCard;
 import dbg.entity.AppData;
 import dbg.entity.MiniAppServerEntity;
 
 import dbg.frontend.config.DbgFrontEndConfig;
+import dbg.frontend.utils.common;
 
 //import dbg.frontend.touch.entity.SSO3Account;
 import dbg.util.AES256Algorithm;
+import dbg.util.CommonUtils;
 import hapax.Template;
 import hapax.TemplateDataDictionary;
 import hapax.TemplateDictionary;
@@ -46,9 +49,19 @@ public class DbgFrontendCore extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         try {
             List<String> params = parseUriRequest(request);
-            
+            if (params.isEmpty()) {
+                logger.error("invalid request from " + common.getClientIP(request));
+                logger.error("invalid request " + common.getRequestUrl(request));
+                echo("invalid request " + request.getRequestURL(), response);
+            }
             String method = params.get(0);
             DbgFrontendCore controller = getController(method);
+            if (controller == null) {
+                logger.error("invalid request from " + common.getClientIP(request));
+                logger.error("invalid request " + common.getRequestUrl(request));
+                echo("invalid request " + request.getRequestURL(), response);
+                return;
+            }
             controller.handleRequest(request, response);
 
         } catch (Exception ex) {
@@ -151,7 +164,6 @@ public class DbgFrontendCore extends HttpServlet {
 //        }
 //        return account;
 //    }
-
 //    protected String getUserName(HttpServletRequest req) {
 //        String vngAuth = null;
 //        Cookie[] cookies = req.getCookies();
@@ -181,7 +193,6 @@ public class DbgFrontendCore extends HttpServlet {
 //        }
 //        return null;
 //    }
-
 //    protected boolean storeZingMePaymentHidenInfo(HttpServletRequest request, String addinfo) {
 //
 //        try {
@@ -195,7 +206,6 @@ public class DbgFrontendCore extends HttpServlet {
 //            return false;
 //        }
 //    }
-
 //    protected PaymentHidenInfo getDefaultZingmePaymentHidenInfo(HttpServletRequest request, String addinfo) {
 //
 //        PaymentHidenInfo info = null;
@@ -236,7 +246,7 @@ public class DbgFrontendCore extends HttpServlet {
 //            info.errorMsg = AppRedirectParamKey.ERROR_MSG.getDefaultValue();
 //            info.netAmount = AppRedirectParamKey.NET_AMOUNT.getDefaultValue();
 //            info.addInfo = addinfo;
-//            info.redirectUrl = request.getParameter("url_redirect");
+//            info.redirectUrl = request.getParameter("urlredirect");
 //            int pmcID = -1;
 //
 //            try {
@@ -258,7 +268,6 @@ public class DbgFrontendCore extends HttpServlet {
 //        return info;
 //
 //    }
-
     public String formatcomma(long value) {
         DecimalFormat myFormatter = new DecimalFormat("#,###");
         String output = myFormatter.format(value);
@@ -315,19 +324,17 @@ public class DbgFrontendCore extends HttpServlet {
             String strAppServerID = request.getParameter("appserverid");
             String key = DbgFrontEndConfig.CreateAppServerKey(strAppServerID, strAppID);
 
-            String url = request.getParameter("url_redirect");
+            String url = request.getParameter("urlredirect");
             if (url != null && !url.trim().equals("") && !url.trim().equals("#")) {
                 dic.setVariable("_n_url_redirect", url);
-            } else {
-                if (DbgFrontEndConfig.AppServerEntityMap.containsKey(key)) {
-                    MiniAppServerEntity entity = DbgFrontEndConfig.AppServerEntityMap.get(key);
-                    if (entity != null) {
-                        dic.setVariable("_n_url_redirect", entity.appRedirectUrl);
-                    }
-                } else {
-                    dic.setVariable("_n_url_redirect", "");
-
+            } else if (DbgFrontEndConfig.AppServerEntityMap.containsKey(key)) {
+                MiniAppServerEntity entity = DbgFrontEndConfig.AppServerEntityMap.get(key);
+                if (entity != null) {
+                    dic.setVariable("_n_url_redirect", entity.appRedirectUrl);
                 }
+            } else {
+                dic.setVariable("_n_url_redirect", "");
+
             }
             dic.setVariable("_n_tranxid", request.getParameter("transid"));
             dic.setVariable("_n_state", "billing");
@@ -339,7 +346,7 @@ public class DbgFrontendCore extends HttpServlet {
             dic.setVariable("_n_grossamount", "");
             //added by BANGDQ for Special Layout 30/10/2014 13:20:10
             //SetSpecialLayOut(request, dic);
-            
+
             return template.renderToString(dic);
         } catch (Exception ex) {
             logger.error(ex.getMessage());
@@ -374,68 +381,6 @@ public class DbgFrontendCore extends HttpServlet {
         }
         return html;
     }
-
-//    public void SetSpecialLayOut(HttpServletRequest request, TemplateDataDictionary dic) {
-//        String appID = request.getParameter("appid");
-//        if (appID != null) {
-//            dic.setVariable("CUSTOM_CSS_LINK", getCUSTOM_CSS_LINK(appID));
-//            dic.setVariable("CUSTOM_CSS_DBG_WRAPPER", getCUSTOM_CSS_DBG_WRAPPER(appID));
-//            dic.setVariable("CUSTOM_CSS_DBG_FOOTER", getCUSTOM_CSS_DBG_FOOTER(appID));
-//        }
-//
-//    }
-//
-//    public void SetSpecialLayOut(HttpServletRequest request, TemplateDataDictionary dic, String appID) {
-//
-//        if (appID != null) {
-//            dic.setVariable("CUSTOM_CSS_LINK", getCUSTOM_CSS_LINK(appID));
-//            dic.setVariable("CUSTOM_CSS_DBG_WRAPPER", getCUSTOM_CSS_DBG_WRAPPER(appID));
-//            dic.setVariable("CUSTOM_CSS_DBG_FOOTER", getCUSTOM_CSS_DBG_FOOTER(appID));
-//        }
-//
-//    }
-
-//    private String getCUSTOM_CSS_DBG_FOOTER(String appID) {
-//        String returnval = "";
-//        if (appID != null) {
-//            if (appID.trim().equalsIgnoreCase(DbgFrontEndConfig.GunnyProductID)) {
-//                returnval = "<div class=\"fl\"><h1 class=\"zdbg_logo zdbgsprt\">Zing Cổng thanh toán</h1></div>";
-//            } else if (appID.trim().equalsIgnoreCase(DbgFrontEndConfig.DotaTKProductID)) {
-//                returnval = "<div class=\"fl\"><h1 class=\"zdbg_logo zdbgsprt\">Zing Cổng thanh toán</h1></div>";
-//            } else if (appID.trim().equalsIgnoreCase(DbgFrontEndConfig.CCTalkAppID)) {
-//                returnval = "<div class=\"fl\"><h1 class=\"zdbg_logo zdbgsprt\">Zing Cổng thanh toán</h1></div>";
-//            }
-//        }
-//        return returnval;
-//    }
-
-//    private String getCUSTOM_CSS_LINK(String appID) {
-//        String returnval = "";
-//        if (appID != null) {
-//            if (appID.trim().equalsIgnoreCase(DbgFrontEndConfig.GunnyProductID)) {
-//                returnval = "<link href=\"" + DbgFrontEndConfig.StaticContentUrl + "/css/gunny/css/screen.css\"  rel=\"stylesheet\" type=\"text/css\" />";
-//            } else if (appID.trim().equalsIgnoreCase(DbgFrontEndConfig.DotaTKProductID)) {
-//                returnval = "<link href=\"" + DbgFrontEndConfig.StaticContentUrl + "/css/dotatk/css/screen.css\"  rel=\"stylesheet\" type=\"text/css\" />";
-//            } else if (appID.trim().equalsIgnoreCase(DbgFrontEndConfig.CCTalkAppID)) {
-//                returnval = "<link href=\"" + DbgFrontEndConfig.StaticContentUrl + "/css/talktv/css/screen.css\"  rel=\"stylesheet\" type=\"text/css\" />";
-//            }
-//        }
-//        return returnval;
-//    }
-
-//    private String getCUSTOM_CSS_DBG_WRAPPER(String appID) {
-//        String returnval = "";
-//        if (appID != null) {
-//            if (appID.trim().equalsIgnoreCase(DbgFrontEndConfig.GunnyProductID)) {
-//                returnval = "gunny";
-//            } else if (appID.trim().equalsIgnoreCase(DbgFrontEndConfig.DotaTKProductID)) {
-//                returnval = "dotatk";
-//            } else if (appID.trim().equalsIgnoreCase(DbgFrontEndConfig.CCTalkAppID)) {
-//                returnval = "talktv";
-//            }
-//        }
-//        return returnval;
-//    }
 
     public boolean StoreCardSerial(HttpServletRequest request, SessionCard entity) {
         try {
@@ -509,18 +454,10 @@ public class DbgFrontendCore extends HttpServlet {
         String ipAddress = request.getHeader("X-FORWARDED-FOR");
         if (ipAddress == null) {
             ipAddress = request.getRemoteAddr();
-            
+
         }
 
         return ipAddress;
-    }
-
-    public boolean IsZaloApp(String appID) {
-        boolean result = false;
-        if (DbgFrontEndConfig.ZaloAppIDs.contains(appID)) {
-            result = true;
-        }
-        return result;
     }
 
     public String GetIsDirectValue(HttpServletRequest request) {
@@ -649,7 +586,6 @@ public class DbgFrontendCore extends HttpServlet {
 //        }
 //        return sResponse;
 //    }
-
     public boolean checkDuplicateTransID(HttpServletRequest request) {
         try {
             HttpSession session = request.getSession();
