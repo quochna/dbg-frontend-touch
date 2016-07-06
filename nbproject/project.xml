@@ -3,7 +3,7 @@
     <type>org.netbeans.modules.java.j2seproject</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/j2se-project/3">
-            <name>dbg-frontend-touch</name>
+            <name>dbg-sdk-webview</name>
             <source-roots>
                 <root id="src.src.dir"/>
                 <root id="src.public.dir"/>
@@ -23,6 +23,14 @@
                 <id>jar</id>
             </reference>
             <reference>
+                <foreign-project>dbg-client-lib-1</foreign-project>
+                <artifact-type>jar</artifact-type>
+                <script>build.xml</script>
+                <target>jar</target>
+                <clean-target>clean</clean-target>
+                <id>jar</id>
+            </reference>
+            <reference>
                 <foreign-project>dbg-shared-lib</foreign-project>
                 <artifact-type>jar</artifact-type>
                 <script>build.xml</script>
@@ -31,7 +39,23 @@
                 <id>jar</id>
             </reference>
             <reference>
+                <foreign-project>dbg-shared-lib-1</foreign-project>
+                <artifact-type>jar</artifact-type>
+                <script>build.xml</script>
+                <target>jar</target>
+                <clean-target>clean</clean-target>
+                <id>jar</id>
+            </reference>
+            <reference>
                 <foreign-project>dbg-util</foreign-project>
+                <artifact-type>jar</artifact-type>
+                <script>build.xml</script>
+                <target>jar</target>
+                <clean-target>clean</clean-target>
+                <id>jar</id>
+            </reference>
+            <reference>
+                <foreign-project>dbg-util-1</foreign-project>
                 <artifact-type>jar</artifact-type>
                 <script>build.xml</script>
                 <target>jar</target>
